@@ -283,7 +283,7 @@ const iTunes = {
     return data.results || [];
   },
 
-  async lookupArtistSongs(artistId, limit=10){
+  async lookupArtistSongs(artistId, limit=25){
     const data = await this._get(
       `/lookup?id=${artistId}&entity=song&limit=${limit}&country=cn`
     );
@@ -293,6 +293,20 @@ const iTunes = {
   async lookupTrack(trackId){
     const data = await this._get(`/lookup?id=${trackId}&country=cn`);
     return (data.results && data.results[0]) || null;
+  },
+
+  async searchByGenre(genre, limit=15){
+    const data = await this._get(
+      `/search?term=${encodeURIComponent(genre)}&entity=song&limit=${limit}&country=cn`
+    );
+    return data.results || [];
+  },
+
+  async searchArtistsInGenre(genre, limit=5){
+    const data = await this._get(
+      `/search?term=${encodeURIComponent(genre)}&entity=musicArtist&limit=${limit}&country=cn`
+    );
+    return data.results || [];
   }
 };
 
@@ -480,27 +494,30 @@ const App = {
   },
 
   async _getRecommendations(seeds){
-    // Get all tracks from the same artists
-    const artistTrackMap = new Map(); // artistId -> {artist, tracks[]}
-    const seenTrackIds = new Set(this.seedPool.map(s=>s.trackId));
+    // Track ALL tracks ever shown or selected to prevent repeats
+    const allSeenIds = new Set(this.seedPool.map(s=>s.trackId));
+    this.cycleResults.forEach(cr => {
+      cr.recs.forEach(r => { if(r.trackId) allSeenIds.add(r.trackId); });
+    });
 
+    // ===== 1. Get tracks from seed artists (25 each, up to 20 used) =====
+    const artistTrackMap = new Map();
+    const fetchPromises = [];
     for(const seed of seeds){
       if(artistTrackMap.has(seed.artistId)) continue;
-      try {
-        const results = await iTunes.lookupArtistSongs(seed.artistId, 10);
-        const tracks = results.filter(r=>
-          r.wrapperType === 'track' && !seenTrackIds.has(r.trackId)
+      const p = iTunes.lookupArtistSongs(seed.artistId, 25).then(results => {
+        const tracks = (results||[]).filter(r =>
+          r.wrapperType === 'track' && !allSeenIds.has(r.trackId)
         );
         if(tracks.length > 0){
-          artistTrackMap.set(seed.artistId, {
-            artist: seed.artist,
-            tracks: tracks.slice(0, 8)
-          });
+          artistTrackMap.set(seed.artistId, {artist: seed.artist, tracks: tracks.slice(0, 20)});
         }
-      } catch(e){ console.warn('Artist lookup failed for', seed.artist, e); }
+      }).catch(e => console.warn('Artist lookup failed for', seed.artist, e));
+      fetchPromises.push(p);
     }
+    await Promise.all(fetchPromises);
 
-    // Build WEIGHTED genre profile from seed pool
+    // ===== 2. Build weighted genre/artist profiles =====
     const genreWeight = {};
     let totalGenreWeight = 0;
     this.seedPool.forEach(s=>{
@@ -511,7 +528,6 @@ const App = {
       }
     });
 
-    // Build WEIGHTED artist match map
     const artistWeight = {};
     let totalArtistWeight = 0;
     seeds.forEach(s=>{
@@ -520,65 +536,113 @@ const App = {
       totalArtistWeight += w;
     });
 
-    // Collect all candidates with weighted scores
+    // ===== 3. Score artist tracks =====
     const candidates = [];
     for(const [artistId, data] of artistTrackMap){
       for(const t of data.tracks){
         const trackGenre = t.primaryGenreName||'';
         const genreMatch = genreWeight[trackGenre] || 0;
         const artistMatch = artistWeight[artistId] || 0;
-        // Score: weighted genre match (60%) + weighted artist match (40%)
         const score = Math.min(100, Math.round(
           (genreMatch / Math.max(1, totalGenreWeight)) * 60 +
           (artistMatch / Math.max(1, totalArtistWeight)) * 40
         ));
         candidates.push({
-          trackId: t.trackId,
-          name: t.trackName||t.trackCensoredName||'',
+          trackId: t.trackId, name: t.trackName||t.trackCensoredName||'',
           artist: t.artistName||'',
           artwork: (t.artworkUrl100||'').replace('100x100','300x300'),
-          preview: t.previewUrl||'',
-          genre: trackGenre,
-          album: t.collectionName||'',
-          score: score,
-          viaArtist: data.artist
+          preview: t.previewUrl||'', genre: trackGenre,
+          album: t.collectionName||'', score, viaArtist: data.artist
         });
       }
     }
 
-    // Also search for popular songs in the top genre
-    const topGenre = Object.entries(genreWeight).sort((a,b)=>b[1]-a[1])[0];
-    if(topGenre && candidates.length < 5){
-      try {
-        const genreResults = await iTunes.searchTracks(topGenre[0]+' song', 5);
-        for(const t of (genreResults||[])){
-          if(seenTrackIds.has(t.trackId)) continue;
+    // ===== 4. Genre-based discovery: search top 3 genres + fetch similar artists =====
+    const topGenres = Object.entries(genreWeight)
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0, 3);
+
+    const genreFetchPromises = [];
+    for(const [genreName] of topGenres){
+      // Search popular tracks in this genre
+      const p1 = iTunes.searchByGenre(genreName, 15).then(results => {
+        for(const t of (results||[])){
+          if(allSeenIds.has(t.trackId)) continue;
           if(candidates.find(c=>c.trackId===t.trackId)) continue;
+          const gMatch = genreWeight[t.primaryGenreName||''] || 0;
           candidates.push({
-            trackId: t.trackId,
-            name: t.trackName||t.trackCensoredName||'',
+            trackId: t.trackId, name: t.trackName||t.trackCensoredName||'',
             artist: t.artistName||'',
             artwork: (t.artworkUrl100||'').replace('100x100','300x300'),
-            preview: t.previewUrl||'',
-            genre: t.primaryGenreName||'',
+            preview: t.previewUrl||'', genre: t.primaryGenreName||'',
             album: t.collectionName||'',
-            score: 30,
-            viaArtist: '流派推荐'
+            score: 25 + Math.min(30, Math.round((gMatch/Math.max(1,totalGenreWeight))*30)),
+            viaArtist: '流派: '+genreName
           });
         }
-      } catch(e){ console.warn('Genre search failed', e); }
-    }
+      }).catch(()=>{});
+      genreFetchPromises.push(p1);
 
-    // Deduplicate by trackId
+      // Also find artists in this genre, then get their songs
+      const p2 = iTunes.searchArtistsInGenre(genreName, 4).then(async artists => {
+        for(const a of (artists||[])){
+          if(artistTrackMap.has(a.artistId)) continue; // skip already-fetched artists
+          try {
+            const results = await iTunes.lookupArtistSongs(a.artistId, 10);
+            const tracks = (results||[]).filter(r =>
+              r.wrapperType === 'track' && !allSeenIds.has(r.trackId)
+            );
+            for(const t of tracks.slice(0, 8)){
+              if(candidates.find(c=>c.trackId===t.trackId)) continue;
+              const gMatch = genreWeight[t.primaryGenreName||''] || 0;
+              candidates.push({
+                trackId: t.trackId, name: t.trackName||t.trackCensoredName||'',
+                artist: t.artistName||'',
+                artwork: (t.artworkUrl100||'').replace('100x100','300x300'),
+                preview: t.previewUrl||'', genre: t.primaryGenreName||'',
+                album: t.collectionName||'',
+                score: 20 + Math.min(35, Math.round((gMatch/Math.max(1,totalGenreWeight))*35)),
+                viaArtist: '同流派: '+a.artistName
+              });
+            }
+          } catch(e){}
+        }
+      }).catch(()=>{});
+      genreFetchPromises.push(p2);
+    }
+    await Promise.all(genreFetchPromises);
+
+    // ===== 5. Deduplicate, shuffle within score bands, pick top 3 =====
     const seen = new Set();
     const unique = candidates.filter(c=>{
-      if(seen.has(c.trackId))return false;
+      if(seen.has(c.trackId)) return false;
       seen.add(c.trackId);
       return true;
     });
 
+    // Sort by score
     unique.sort((a,b)=>b.score-a.score);
-    return unique.slice(0, 3);
+
+    // Shuffle within score bands for diversity (tracks with similar scores get randomized order)
+    function shuffleBand(arr, start, end){
+      for(let i=end-1; i>start; i--){
+        const j = start + Math.floor(Math.random() * (i-start+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    // Group by score bands (every 10 points) and shuffle within each band
+    for(let i=0; i<unique.length; ){
+      const band = Math.floor(unique[i].score / 10);
+      let j = i;
+      while(j < unique.length && Math.floor(unique[j].score / 10) === band) j++;
+      if(j - i > 3) shuffleBand(unique, i, j); // only shuffle if >3 in band
+      i = j;
+    }
+
+    // Take top 3, ensuring at least one from genre discovery if available
+    const result = unique.slice(0, 3);
+    return result;
   },
 
   renderRecommendations(tracks){
@@ -614,7 +678,8 @@ const App = {
     this.cycleResults.push({
       cycle: this.currentCycle,
       recs: this.currentRecs.map(t=>({
-        name: t.name, artist: t.artist, score: t.score, artwork: t.artwork
+        trackId: t.trackId, name: t.name, artist: t.artist,
+        score: t.score, artwork: t.artwork
       })),
       picked: pickedTrack
     });
