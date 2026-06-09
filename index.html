@@ -448,18 +448,26 @@ const SpotifyAPI = {
     const ok = await SpotifyAuth.ensureToken();
     if(!ok) throw new Error('Not authenticated');
     const token = SpotifyAuth.getAccessToken();
+    console.log('[SpotifyAPI] Calling:', url.substring(0, 80));
     const res = await fetch(url, {
       ...opts,
       headers: {...opts.headers, 'Authorization': 'Bearer ' + token}
     });
+    console.log('[SpotifyAPI] Response status:', res.status);
     if(res.status === 401){
+      console.log('[SpotifyAPI] Token expired, refreshing...');
       const refreshed = await SpotifyAuth.refreshToken();
       if(refreshed){
         const token2 = SpotifyAuth.getAccessToken();
-        return fetch(url, {
+        const retryRes = await fetch(url, {
           ...opts,
           headers: {...opts.headers, 'Authorization': 'Bearer ' + token2}
         });
+        if(!retryRes.ok){
+          const text = await retryRes.text();
+          throw new Error(`API error ${retryRes.status}: ${text}`);
+        }
+        return retryRes.json();
       }
       throw new Error('Auth failed');
     }
@@ -616,15 +624,24 @@ const App = {
   _searchCache: Array(5).fill(null),
 
   async onSearchInput(idx, query){
-    if(query.length < 2){ $('search-results-'+idx).innerHTML=''; this._searchCache[idx]=null; return }
-    if(!SpotifyAuth.isLoggedIn()){ toast('请先连接 Spotify'); return }
+    console.log('[App] onSearchInput idx:', idx, 'query:', query);
+    if(query.length < 2){
+      console.log('[App] Query too short, clearing');
+      $('search-results-'+idx).innerHTML=''; this._searchCache[idx]=null; return;
+    }
+    if(!SpotifyAuth.isLoggedIn()){
+      console.log('[App] Not logged in');
+      toast('请先连接 Spotify'); return;
+    }
     try {
+      console.log('[App] Searching Spotify for:', query);
       const tracks = await SpotifyAPI.searchTracks(query);
+      console.log('[App] Got tracks:', tracks.length);
       this._searchCache[idx] = tracks;
       this.renderSearchResults(idx, tracks);
     } catch(e){
-      console.error(e);
-      $('search-results-'+idx).innerHTML = '<div style="color:var(--danger);font-size:.82rem">搜索失败</div>';
+      console.error('[App] Search error:', e);
+      $('search-results-'+idx).innerHTML = '<div style="color:var(--danger);font-size:.82rem">搜索失败: '+e.message+'</div>';
     }
   },
 
