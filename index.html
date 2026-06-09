@@ -11,8 +11,8 @@
   --surface2: #1e1e2e;
   --text: #e0e0e8;
   --text2: #9090a8;
-  --accent: #ef5466;
-  --accent2: #ff7080;
+  --accent: #fa586a;
+  --accent2: #ff7a88;
   --border: #2a2a3a;
   --radius: 10px;
   --shadow: 0 4px 24px rgba(0,0,0,.4);
@@ -82,17 +82,18 @@ h2{font-size:1.5rem;margin-bottom:8px}
   border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;
 }
 .search-result:hover{border-color:var(--accent)}
-.search-result.selected{border-color:var(--accent);background:rgba(239,84,102,.1)}
+.search-result.selected{border-color:var(--accent);background:rgba(250,88,106,.1)}
 .search-result img{width:40px;height:40px;border-radius:3px;object-fit:cover;background:var(--surface);flex-shrink:0}
 .search-result .info{flex:1;min-width:0}
 .search-result .name{font-weight:600;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .search-result .artist{color:var(--text2);font-size:.75rem}
+.search-result .genre{color:var(--text2);font-size:.68rem}
 .search-result .check{color:var(--accent);font-size:1rem;display:none;flex-shrink:0}
 .search-result.selected .check{display:block}
 
 .selected-track{
   display:flex;align-items:center;gap:8px;
-  background:rgba(239,84,102,.1);border:1px solid var(--accent);
+  background:rgba(250,88,106,.1);border:1px solid var(--accent);
   padding:8px 12px;border-radius:8px;margin-top:8px;
 }
 .selected-track img{width:32px;height:32px;border-radius:3px;object-fit:cover}
@@ -101,7 +102,7 @@ h2{font-size:1.5rem;margin-bottom:8px}
 .selected-track .clear-btn{margin-left:auto;color:var(--text2);cursor:pointer;font-size:.85rem}
 .selected-track .clear-btn:hover{color:var(--accent)}
 
-/* Recommendation Cards */
+/* Rec Cards */
 .rec-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
 .rec-card{
   background:var(--surface);border:1px solid var(--border);
@@ -109,23 +110,25 @@ h2{font-size:1.5rem;margin-bottom:8px}
   cursor:pointer;transition:all .2s;position:relative;
 }
 .rec-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
-.rec-card.picked{border-color:var(--accent);background:rgba(239,84,102,.08)}
+.rec-card.picked{border-color:var(--accent);background:rgba(250,88,106,.08)}
 .rec-card img{width:100px;height:100px;border-radius:6px;object-fit:cover;margin-bottom:12px;background:var(--surface2)}
 .rec-card .track-name{font-weight:700;margin-bottom:4px;font-size:.92rem}
-.rec-card .track-artist{color:var(--text2);font-size:.8rem;margin-bottom:8px}
-.rec-card audio{width:100%;height:32px;margin-bottom:8px;border-radius:16px}
-.rec-card audio::-webkit-media-controls-panel{background:var(--surface2)}
-.rec-card .score{
-  display:inline-block;padding:3px 10px;border-radius:10px;font-size:.72rem;
-  color:var(--text2);margin-bottom:6px;
-}
+.rec-card .track-artist{color:var(--text2);font-size:.8rem;margin-bottom:4px}
+.rec-card .track-genre{color:var(--text2);font-size:.72rem;margin-bottom:8px}
+.rec-card .score{display:inline-block;padding:3px 10px;border-radius:10px;font-size:.72rem;color:var(--text2);margin-bottom:6px}
 .rec-card .score-hi{color:var(--accent2);font-weight:700;background:var(--surface2)}
 .rec-card .reason{font-size:.7rem;color:var(--accent);margin-bottom:8px}
 .rec-card .badge{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:10px}
+.rec-card audio{width:100%;height:32px;margin-bottom:8px;border-radius:16px}
 
-/* Cycle info */
+/* Cycle */
 .cycle-info{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .cycle-badge{background:var(--accent);color:#fff;font-weight:700;padding:6px 16px;border-radius:20px;font-size:.88rem}
+
+/* Genres bar */
+.genre-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.genre-tag{font-size:.75rem;padding:4px 12px;border-radius:14px;background:var(--surface2);color:var(--text2)}
+.genre-tag strong{color:var(--text)}
 
 /* Final Table */
 .final-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:.85rem}
@@ -140,12 +143,10 @@ h2{font-size:1.5rem;margin-bottom:8px}
 .final-table .track-cell img{width:32px;height:32px;border-radius:3px;object-fit:cover}
 .final-table .rec-list{display:flex;flex-direction:column;gap:3px}
 
-/* Loading */
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
 .loading-box{background:var(--surface);border-radius:var(--radius);padding:32px 40px;text-align:center}
-
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);padding:12px 24px;border-radius:24px;font-size:.88rem;box-shadow:var(--shadow);z-index:300}
 
 @media(max-width:700px){.rec-cards{grid-template-columns:1fr}.input-grid{grid-template-columns:1fr}}
@@ -159,7 +160,7 @@ h2{font-size:1.5rem;margin-bottom:8px}
 <header>
   <div class="logo">
     <em>♪</em> Music Discovery
-    <small>Powered by Deezer</small>
+    <small>Powered by iTunes</small>
   </div>
 </header>
 
@@ -170,31 +171,29 @@ h2{font-size:1.5rem;margin-bottom:8px}
     <div class="dot" data-step="2"></div>
   </div>
 
-  <!-- Step 0: Search -->
   <section class="step active" id="step-search">
     <h2>输入 5 首你喜欢的歌曲</h2>
-    <p class="subtitle">输入歌名搜索，从候选列表中选择匹配的歌曲</p>
+    <p class="subtitle">输入歌名搜索，从候选列表中选择</p>
     <div class="input-grid" id="input-grid"></div>
     <button class="btn btn-primary" id="btn-analyze" disabled onclick="App.startRecommendations()">
       开始分析推荐
     </button>
   </section>
 
-  <!-- Step 1: Recommendations -->
   <section class="step" id="step-recommend">
     <div class="cycle-info">
       <span class="cycle-badge" id="cycle-badge">第 1 / 5 轮</span>
       <span style="color:var(--text2);font-size:.88rem" id="pool-info"></span>
     </div>
     <h2>为你推荐的歌曲</h2>
-    <p class="subtitle">分析相关艺人，从关联艺人的热门歌曲中匹配推荐</p>
+    <p class="subtitle">分析种子歌曲的艺人和流派，从关联歌曲中匹配推荐</p>
+    <div class="genre-bar" id="genre-bar"></div>
     <div class="rec-cards" id="rec-cards"></div>
   </section>
 
-  <!-- Step 2: Final -->
   <section class="step" id="step-final">
     <h2>推荐结果总览</h2>
-    <p class="subtitle">基于你的5首歌曲，经过5轮迭代推荐的结果</p>
+    <p class="subtitle">5轮迭代推荐完成</p>
     <div style="overflow-x:auto">
       <table class="final-table" id="final-table"></table>
     </div>
@@ -220,35 +219,35 @@ function showLoading(msg){$('loading').style.display='flex';$('loading-text').te
 function hideLoading(){$('loading').style.display='none'}
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('toast-container').appendChild(t);setTimeout(()=>t.remove(),2500)}
 
-// ===================== DEEZER API =====================
-const Deezer = {
-  // Calls go through local server proxy (/api/deezer/...) to bypass network blocks
-  _base: '/api/deezer',
+// ===================== iTUNES API =====================
+const iTunes = {
+  _base: 'https://itunes.apple.com',
 
   async _get(path){
     const url = this._base + path;
-    console.log('[Deezer] GET', url);
+    console.log('[iTunes] GET', url);
     const res = await fetch(url);
-    if(!res.ok){
-      const text = await res.text();
-      throw new Error(`HTTP ${res.status}: ${text.substring(0,200)}`);
-    }
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
   },
 
   async searchTracks(query, limit=5){
-    const data = await this._get(`/search/track?q=${encodeURIComponent(query)}&limit=${limit}`);
-    return data.data || [];
+    const data = await this._get(
+      `/search?term=${encodeURIComponent(query)}&entity=song&limit=${limit}&country=cn`
+    );
+    return data.results || [];
   },
 
-  async getArtistTopTracks(artistId, limit=10){
-    const data = await this._get(`/artist/${artistId}/top?limit=${limit}`);
-    return data.data || [];
+  async lookupArtistSongs(artistId, limit=10){
+    const data = await this._get(
+      `/lookup?id=${artistId}&entity=song&limit=${limit}&country=cn`
+    );
+    return data.results || [];
   },
 
-  async getRelatedArtists(artistId){
-    const data = await this._get(`/artist/${artistId}/related`);
-    return data.data || [];
+  async lookupTrack(trackId){
+    const data = await this._get(`/lookup?id=${trackId}&country=cn`);
+    return (data.results && data.results[0]) || null;
   }
 };
 
@@ -271,50 +270,50 @@ const App = {
   updateStepBar(step){
     document.querySelectorAll('#steps-bar .dot').forEach((d,i)=>{
       d.classList.remove('done','current');
-      if(i < step) d.classList.add('done');
-      if(i === step) d.classList.add('current');
+      if(i<step)d.classList.add('done');
+      if(i===step)d.classList.add('current');
     });
   },
 
   // ------ Search ------
   renderSearchInputs(){
-    const grid = $('input-grid');
-    grid.innerHTML = '';
-    for(let i=0; i<5; i++){
+    $('input-grid').innerHTML = '';
+    for(let i=0;i<5;i++){
       const card = document.createElement('div');
       card.className = 'input-card';
       card.innerHTML = `
         <div class="num">歌曲 ${i+1}</div>
         <input type="text" placeholder="歌名 + 歌手名..."
                id="search-input-${i}"
-               oninput="App.onSearchInput(${i}, this.value)"
+               oninput="App.onSearchInput(${i},this.value)"
                onfocus="App.onSearchFocus(${i})">
         <div id="search-results-${i}" style="margin-top:8px"></div>
         <div id="search-selected-${i}"></div>
       `;
-      grid.appendChild(card);
+      $('input-grid').appendChild(card);
     }
     this.checkAllSelected();
   },
 
   onSearchFocus(idx){
-    for(let i=0;i<5;i++) if(i!==idx) $('search-results-'+i).innerHTML='';
+    for(let i=0;i<5;i++)if(i!==idx)$('search-results-'+i).innerHTML='';
   },
 
   _searchTimers: Array(5).fill(null),
 
   onSearchInput(idx, query){
     if(query.length < 2){$('search-results-'+idx).innerHTML='';this._searchCache[idx]=null;return}
-    if(this._searchTimers[idx]) clearTimeout(this._searchTimers[idx]);
-    this._searchTimers[idx] = setTimeout(() => this._doSearch(idx, query), 350);
+    if(this._searchTimers[idx])clearTimeout(this._searchTimers[idx]);
+    this._searchTimers[idx] = setTimeout(()=>this._doSearch(idx,query), 350);
   },
 
   async _doSearch(idx, query){
     try {
-      const tracks = await Deezer.searchTracks(query);
+      const tracks = await iTunes.searchTracks(query);
       this._searchCache[idx] = tracks;
       this.renderSearchResults(idx, tracks);
     } catch(e){
+      console.error(e);
       $('search-results-'+idx).innerHTML =
         `<div style="color:var(--accent);font-size:.8rem;padding:8px">搜索失败: ${e.message}</div>`;
     }
@@ -322,15 +321,16 @@ const App = {
 
   renderSearchResults(idx, tracks){
     const container = $('search-results-'+idx);
-    container.innerHTML = tracks.map(t => {
-      const sel = this.searchSelects[idx] && this.searchSelects[idx].id === t.id;
-      const img = t.album && t.album.cover_small;
+    container.innerHTML = tracks.map(t=>{
+      const sel = this.searchSelects[idx] && this.searchSelects[idx].trackId === t.trackId;
+      const img = t.artworkUrl60 || t.artworkUrl100 || '';
       return `
-        <div class="search-result ${sel?'selected':''}" onclick="App.selectSearchResult(${idx}, ${t.id})">
-          ${img ? `<img src="${img}" alt="" onerror="this.style.background='var(--surface)'">` : '<div style="width:40px;height:40px;border-radius:3px;background:var(--surface);flex-shrink:0"></div>'}
+        <div class="search-result ${sel?'selected':''}" onclick="App.selectSearchResult(${idx},${t.trackId})">
+          ${img?`<img src="${img}" alt="" onerror="this.style.background='var(--surface)'">`:'<div style="width:40px;height:40px;border-radius:3px;background:var(--surface);flex-shrink:0"></div>'}
           <div class="info">
-            <div class="name">${this._esc(t.title)}</div>
-            <div class="artist">${this._esc(t.artist.name)} · ${this._esc(t.album.title)}</div>
+            <div class="name">${this._esc(t.trackName||t.trackCensoredName)}</div>
+            <div class="artist">${this._esc(t.artistName)}${t.collectionName?` · ${this._esc(t.collectionName)}`:''}</div>
+            ${t.primaryGenreName?`<div class="genre">${this._esc(t.primaryGenreName)}</div>`:''}
           </div>
           <div class="check">✓</div>
         </div>`;
@@ -339,17 +339,18 @@ const App = {
 
   selectSearchResult(idx, trackId){
     const cached = this._searchCache[idx];
-    if(!cached) return;
-    const track = cached.find(t => t.id === trackId);
-    if(!track) return;
+    if(!cached)return;
+    const t = cached.find(r=>r.trackId===trackId);
+    if(!t)return;
     this.searchSelects[idx] = {
-      id: track.id,
-      title: track.title,
-      artist: track.artist.name,
-      artistId: track.artist.id,
-      album: track.album.title,
-      cover: track.album.cover_medium || track.album.cover_small || '',
-      preview: track.preview || ''
+      trackId: t.trackId,
+      name: t.trackName||t.trackCensoredName,
+      artist: t.artistName,
+      artistId: t.artistId,
+      genre: t.primaryGenreName||'',
+      album: t.collectionName||'',
+      artwork: (t.artworkUrl100||t.artworkUrl60||'').replace('100x100','300x300'),
+      preview: t.previewUrl||''
     };
     this.renderSearchResults(idx, cached);
     this.showSelectedTrack(idx);
@@ -358,39 +359,49 @@ const App = {
 
   showSelectedTrack(idx){
     const sel = this.searchSelects[idx];
-    const container = $('search-selected-'+idx);
-    if(!sel){container.innerHTML='';return}
-    container.innerHTML = `
+    const c = $('search-selected-'+idx);
+    if(!sel){c.innerHTML='';return}
+    c.innerHTML = `
       <div class="selected-track">
-        ${sel.cover ? `<img src="${sel.cover}" alt="">` : ''}
-        <span class="name">${this._esc(sel.title)}</span>
-        <span class="artist">${this._esc(sel.artist)}</span>
+        ${sel.artwork?`<img src="${sel.artwork}" alt="">`:''}
+        <span class="name">${this._esc(sel.name)}</span>
+        <span class="artist">${this._esc(sel.artist)}${sel.genre?` · ${this._esc(sel.genre)}`:''}</span>
         <span class="clear-btn" onclick="event.stopPropagation();App.clearSelection(${idx})">✕</span>
       </div>`;
   },
 
   clearSelection(idx){
-    this.searchSelects[idx] = null;
+    this.searchSelects[idx]=null;
     this.showSelectedTrack(idx);
-    if(this._searchCache[idx]) this.renderSearchResults(idx, this._searchCache[idx]);
+    if(this._searchCache[idx])this.renderSearchResults(idx, this._searchCache[idx]);
     this.checkAllSelected();
   },
 
   checkAllSelected(){
-    $('btn-analyze').disabled = !this.searchSelects.every(s=>s!==null);
+    $('btn-analyze').disabled=!this.searchSelects.every(s=>s!==null);
   },
 
   // ------ Recommendations ------
   async startRecommendations(){
-    if(!this.searchSelects.every(s=>s)) return;
-
-    this.seedPool = this.searchSelects.map(s => ({...s}));
+    if(!this.searchSelects.every(s=>s))return;
+    this.seedPool = this.searchSelects.map(s=>({...s}));
     this.originalSeeds = [...this.seedPool];
     this.cycleResults = [];
     this.currentCycle = 0;
-
     this.showStep('recommend');
+    this._showGenreBar();
     await this.runCycle();
+  },
+
+  _showGenreBar(){
+    const genres = {};
+    this.seedPool.forEach(s=>{
+      if(s.genre){genres[s.genre]=(genres[s.genre]||0)+1}
+    });
+    $('genre-bar').innerHTML = Object.entries(genres)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([g,n])=>`<span class="genre-tag"><strong>${this._esc(g)}</strong> ×${n}</span>`)
+      .join('');
   },
 
   async runCycle(){
@@ -400,8 +411,8 @@ const App = {
     }
 
     this.currentCycle++;
-    $('cycle-badge').textContent = `第 ${this.currentCycle} / ${this.totalCycles} 轮`;
-    $('pool-info').textContent = `种子池: ${this.seedPool.length} 首歌曲`;
+    $('cycle-badge').textContent=`第 ${this.currentCycle} / ${this.totalCycles} 轮`;
+    $('pool-info').textContent=`种子池: ${this.seedPool.length} 首`;
     this.updateStepBar(1);
 
     showLoading(`第 ${this.currentCycle} 轮推荐中...`);
@@ -412,95 +423,114 @@ const App = {
       this.currentRecs = recs;
       this.renderRecommendations(recs);
     } catch(e){
-      console.error('[App] Recommendation error:', e);
-      toast('推荐失败: ' + e.message);
+      console.error(e);
+      toast('推荐失败: '+e.message);
     }
     hideLoading();
   },
 
   async _getRecommendations(seeds){
-    // Track all related artists and their connection count
-    const relatedMap = new Map(); // artistId -> {artist info, connections}
-    const seedArtistIds = new Set();
+    // Get all tracks from the same artists
+    const artistTrackMap = new Map(); // artistId -> {artist, tracks[]}
+    const seenTrackIds = new Set(this.seedPool.map(s=>s.trackId));
 
     for(const seed of seeds){
-      seedArtistIds.add(seed.artistId);
+      if(artistTrackMap.has(seed.artistId)) continue;
       try {
-        const related = await Deezer.getRelatedArtists(seed.artistId);
-        for(const ra of (related || [])){
-          const id = ra.id;
-          if(seedArtistIds.has(id)) continue; // skip own seed artists
-          if(relatedMap.has(id)){
-            relatedMap.get(id).connections.push(seed.artist);
-          } else {
-            relatedMap.set(id, {
-              id, name: ra.name,
-              picture: ra.picture_medium || ra.picture_small || '',
-              connections: [seed.artist]
-            });
-          }
-        }
-      } catch(e){ console.warn('Related artists failed for', seed.artist, e); }
-    }
-
-    // Get top tracks from top related artists (by connections)
-    const sortedArtists = [...relatedMap.values()]
-      .sort((a,b) => b.connections.length - a.connections.length);
-
-    // Fetch top tracks from top 10 related artists
-    const candidates = [];
-    const topArtists = sortedArtists.slice(0, 10);
-    for(const artist of topArtists){
-      try {
-        const topTracks = await Deezer.getArtistTopTracks(artist.id, 5);
-        for(const t of (topTracks || [])){
-          candidates.push({
-            id: t.id,
-            title: t.title,
-            artist: t.artist.name,
-            artistId: t.artist.id,
-            cover: t.album.cover_medium || t.album.cover_small || '',
-            preview: t.preview || '',
-            album: t.album.title,
-            viaArtist: artist.name,
-            connections: artist.connections.length
+        const results = await iTunes.lookupArtistSongs(seed.artistId, 10);
+        const tracks = results.filter(r=>
+          r.wrapperType === 'track' && !seenTrackIds.has(r.trackId)
+        );
+        if(tracks.length > 0){
+          artistTrackMap.set(seed.artistId, {
+            artist: seed.artist,
+            tracks: tracks.slice(0, 8)
           });
         }
-      } catch(e){ console.warn('Top tracks failed for', artist.name, e); }
+      } catch(e){ console.warn('Artist lookup failed for', seed.artist, e); }
     }
 
-    // Deduplicate
-    const seen = new Set();
-    const unique = [];
-    for(const t of candidates){
-      const key = t.id;
-      if(seen.has(key)) continue;
-      seen.add(key);
-      unique.push(t);
-    }
-
-    // Score: boost tracks where the related artist has multiple connections
-    unique.forEach(t => {
-      t.score = Math.min(100, Math.round(t.connections * 100 / seeds.length));
+    // Build genre profile from seed pool
+    const genreCount = {};
+    this.seedPool.forEach(s=>{
+      if(s.genre) genreCount[s.genre] = (genreCount[s.genre]||0) + 1;
     });
-    unique.sort((a,b) => b.score - a.score);
 
+    // Collect all candidates with scores
+    const candidates = [];
+    for(const [artistId, data] of artistTrackMap){
+      for(const t of data.tracks){
+        const trackGenre = t.primaryGenreName||'';
+        const genreMatch = genreCount[trackGenre] || 0;
+        // Score: genre match (60%) + same artist match (40%)
+        const artistSeedCount = seeds.filter(s=>s.artistId===artistId).length;
+        const score = Math.min(100, Math.round(
+          (genreMatch / seeds.length) * 60 +
+          (artistSeedCount / seeds.length) * 40
+        ));
+        candidates.push({
+          trackId: t.trackId,
+          name: t.trackName||t.trackCensoredName||'',
+          artist: t.artistName||'',
+          artwork: (t.artworkUrl100||'').replace('100x100','300x300'),
+          preview: t.previewUrl||'',
+          genre: trackGenre,
+          album: t.collectionName||'',
+          score: score,
+          viaArtist: data.artist
+        });
+      }
+    }
+
+    // Also search for popular songs in the top genre
+    const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0];
+    if(topGenre && candidates.length < 5){
+      try {
+        const genreResults = await iTunes.searchTracks(topGenre[0]+' song', 5);
+        for(const t of (genreResults||[])){
+          if(seenTrackIds.has(t.trackId)) continue;
+          if(candidates.find(c=>c.trackId===t.trackId)) continue;
+          candidates.push({
+            trackId: t.trackId,
+            name: t.trackName||t.trackCensoredName||'',
+            artist: t.artistName||'',
+            artwork: (t.artworkUrl100||'').replace('100x100','300x300'),
+            preview: t.previewUrl||'',
+            genre: t.primaryGenreName||'',
+            album: t.collectionName||'',
+            score: 30,
+            viaArtist: '流派推荐'
+          });
+        }
+      } catch(e){ console.warn('Genre search failed', e); }
+    }
+
+    // Deduplicate by trackId
+    const seen = new Set();
+    const unique = candidates.filter(c=>{
+      if(seen.has(c.trackId))return false;
+      seen.add(c.trackId);
+      return true;
+    });
+
+    unique.sort((a,b)=>b.score-a.score);
     return unique.slice(0, 3);
   },
 
   renderRecommendations(tracks){
     const container = $('rec-cards');
-    container.innerHTML = tracks.map((t,i) => {
-      const hi = t.score >= 70 ? 'score-hi' : '';
+    container.innerHTML = tracks.map((t,i)=>{
+      const hi = t.score >= 60 ? 'score-hi' : '';
       return `
         <div class="rec-card" id="rec-card-${i}">
           <div class="badge">#${i+1}</div>
-          ${t.cover ? `<img src="${t.cover}" alt="" onerror="this.style.display='none'">` : '<div style="width:100px;height:100px;border-radius:6px;background:var(--surface2);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text2)">♪</div>'}
-          <div class="track-name">${this._esc(t.title)}</div>
+          ${t.artwork?`<img src="${t.artwork}" alt="" onerror="this.style.display='none'">`:'<div style="width:100px;height:100px;border-radius:6px;background:var(--surface2);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text2)">♪</div>'}
+          <div class="track-name">${this._esc(t.name)}</div>
           <div class="track-artist">${this._esc(t.artist)}</div>
+          ${t.genre?`<div class="track-genre">${this._esc(t.genre)}</div>`:''}
           <div class="score ${hi}">匹配度: ${t.score}%</div>
-          <div class="reason">关联: ${this._esc(t.viaArtist)} × ${t.connections}</div>
-          ${t.preview ? `<audio controls src="${t.preview}"><source src="${t.preview}" type="audio/mpeg"></audio>` : '<div style="color:var(--text2);font-size:.7rem">无预览</div>'}
+          <div class="reason">来源: ${this._esc(t.viaArtist)}</div>
+          ${t.preview?`<audio controls src="${t.preview}"><source src="${t.preview}" type="audio/mpeg"></audio>`:'<div style="color:var(--text2);font-size:.7rem;margin:4px 0">无试听</div>'}
           <button class="btn btn-primary" onclick="App.pickSong(${i})" style="width:100%;margin-top:6px">选这首 ♪</button>
         </div>`;
     }).join('');
@@ -508,34 +538,43 @@ const App = {
 
   async pickSong(idx){
     const picked = this.currentRecs[idx];
-    if(!picked) return;
+    if(!picked)return;
 
     const pickedTrack = {
-      id: picked.id, title: picked.title, artist: picked.artist,
-      cover: picked.cover, preview: picked.preview,
-      score: picked.score, viaArtist: picked.viaArtist, connections: picked.connections
+      trackId: picked.trackId, name: picked.name, artist: picked.artist,
+      artwork: picked.artwork, preview: picked.preview,
+      genre: picked.genre, score: picked.score, viaArtist: picked.viaArtist
     };
 
     this.cycleResults.push({
       cycle: this.currentCycle,
-      recs: this.currentRecs.map(t => ({
-        title: t.title, artist: t.artist, score: t.score, cover: t.cover
+      recs: this.currentRecs.map(t=>({
+        name: t.name, artist: t.artist, score: t.score, artwork: t.artwork
       })),
       picked: pickedTrack
     });
 
+    // Get full track info (especially artistId for future cycles)
+    let artistId = null;
+    try {
+      const info = await iTunes.lookupTrack(picked.trackId);
+      if(info) artistId = info.artistId;
+    } catch(e){}
+
     this.seedPool.push({
-      id: picked.id, title: picked.title, artist: picked.artist,
-      artistId: picked.artistId, cover: picked.cover, preview: picked.preview
+      trackId: picked.trackId, name: picked.name, artist: picked.artist,
+      artistId: artistId || picked.trackId,
+      genre: picked.genre, artwork: picked.artwork
     });
+    this._showGenreBar();
 
-    document.querySelectorAll('.rec-card').forEach(c => c.classList.remove('picked'));
+    document.querySelectorAll('.rec-card').forEach(c=>c.classList.remove('picked'));
     const card = document.getElementById('rec-card-'+idx);
-    if(card) card.classList.add('picked');
-    document.querySelectorAll('.rec-card button').forEach(b => b.disabled = true);
+    if(card)card.classList.add('picked');
+    document.querySelectorAll('.rec-card button').forEach(b=>b.disabled=true);
 
-    toast(`已选择: ${pickedTrack.title}`);
-    setTimeout(() => this.runCycle(), 1000);
+    toast(`已选择: ${pickedTrack.name}`);
+    setTimeout(()=>this.runCycle(), 1000);
   },
 
   // ------ Final ------
@@ -545,29 +584,28 @@ const App = {
 
     const tbody = $('final-table');
     let html = `<thead><tr>
-      <th>轮次</th><th>该轮3首推荐</th><th>你选择的歌曲</th><th>推荐来源</th>
+      <th>轮次</th><th>该轮3首推荐</th><th>你选择的歌曲</th><th>匹配度 / 来源</th>
     </tr></thead><tbody>`;
 
-    this.cycleResults.forEach(r => {
+    this.cycleResults.forEach(r=>{
       html += `<tr>
         <td><strong>第 ${r.cycle} 轮</strong></td>
-        <td><div class="rec-list">
-          ${r.recs.map(rec => `
-            <span>${this._esc(rec.title)} — ${this._esc(rec.artist)} <small style="color:var(--text2)">(${rec.score}%)</small></span>
-          `).join('')}
-        </div></td>
+        <td><div class="rec-list">${r.recs.map(rec=>`
+          <span>${this._esc(rec.name)} — ${this._esc(rec.artist)} <small style="color:var(--text2)">(${rec.score}%)</small></span>
+        `).join('')}</div></td>
         <td>
           <div class="track-cell">
-            ${r.picked.cover ? `<img src="${r.picked.cover}" alt="">` : ''}
+            ${r.picked.artwork?`<img src="${r.picked.artwork}" alt="">`:''}
             <div>
-              <strong>${this._esc(r.picked.title)}</strong><br>
+              <strong>${this._esc(r.picked.name)}</strong><br>
               <small style="color:var(--text2)">${this._esc(r.picked.artist)}</small>
+              ${r.picked.genre?`<br><small style="color:var(--text2)">${this._esc(r.picked.genre)}</small>`:''}
             </div>
           </div>
         </td>
         <td style="font-size:.8rem">
           匹配度: <strong>${r.picked.score}%</strong><br>
-          通过 <span style="color:var(--accent)">${this._esc(r.picked.viaArtist)}</span>
+          来源: ${this._esc(r.picked.viaArtist)}
         </td>
       </tr>`;
     });
@@ -575,7 +613,7 @@ const App = {
     html += `</tbody>
     <tfoot><tr style="background:var(--surface)">
       <td colspan="4" style="text-align:center;color:var(--text2);font-size:.8rem">
-        初始种子: ${this.originalSeeds.map(s=>this._esc(s.title+' - '+s.artist)).join(' | ')}
+        初始种子: ${this.originalSeeds.map(s=>this._esc(s.name+' - '+s.artist)).join(' | ')}
       </td>
     </tr></tfoot>`;
 
@@ -584,42 +622,39 @@ const App = {
 
   showStep(name){
     document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
-    const map = {search:'step-search',recommend:'step-recommend',final:'step-final'};
-    const el = $(map[name]);
-    if(el) el.classList.add('active');
+    const map={search:'step-search',recommend:'step-recommend',final:'step-final'};
+    const el=$(map[name]);
+    if(el)el.classList.add('active');
   },
 
   reset(){
-    this.searchSelects = Array(5).fill(null);
-    this.seedPool = []; this.originalSeeds = [];
-    this.currentRecs = []; this.cycleResults = [];
-    this.currentCycle = 0;
-    this._searchCache = Array(5).fill(null);
+    this.searchSelects=Array(5).fill(null);
+    this.seedPool=[];this.originalSeeds=[];
+    this.currentRecs=[];this.cycleResults=[];
+    this.currentCycle=0;
+    this._searchCache=Array(5).fill(null);
     this.showStep('search');
     this.updateStepBar(0);
     this.renderSearchInputs();
   },
 
   exportCSV(){
-    let csv = '轮次,推荐1,推荐2,推荐3,选中歌曲,选中歌手,匹配度,来源艺人\n';
-    this.cycleResults.forEach(r => {
-      csv += [
-        r.cycle,
-        `"${r.recs[0]?.title||''}"`,`"${r.recs[1]?.title||''}"`,`"${r.recs[2]?.title||''}"`,
-        `"${r.picked.title}"`,`"${r.picked.artist}"`,
-        r.picked.score+'%',
-        `"${r.picked.viaArtist}"`
-      ].join(',') + '\n';
+    let csv='轮次,推荐1,推荐2,推荐3,选中歌曲,选中歌手,匹配度,来源\n';
+    this.cycleResults.forEach(r=>{
+      csv+=[r.cycle,
+        `"${r.recs[0]?.name||''}"`,`"${r.recs[1]?.name||''}"`,`"${r.recs[2]?.name||''}"`,
+        `"${r.picked.name}"`,`"${r.picked.artist}"`,r.picked.score+'%',`"${r.picked.viaArtist}"`
+      ].join(',')+'\n';
     });
-    const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'recommendations.csv';
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='recommendations.csv';
     a.click();
     toast('CSV 已下载');
   },
 
-  _esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  _esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 };
 
 document.addEventListener('DOMContentLoaded', ()=>App.init());
