@@ -640,8 +640,16 @@ const App = {
       i = j;
     }
 
-    // Take top 3, ensuring at least one from genre discovery if available
-    const result = unique.slice(0, 3);
+    // Pick top 3 ensuring max 1 track per artist for diversity
+    const result = [];
+    const usedArtists = new Set();
+    for(const c of unique){
+      const artistKey = c.artist.toLowerCase();
+      if(usedArtists.has(artistKey)) continue;
+      result.push(c);
+      usedArtists.add(artistKey);
+      if(result.length >= 3) break;
+    }
     return result;
   },
 
