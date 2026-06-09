@@ -327,6 +327,8 @@ h2{
 
 <script>
 // ===================== CONFIG =====================
+// 在 https://developer.spotify.com/dashboard 创建应用获取 Client ID
+// Redirect URI 填写: http://127.0.0.1:8080/  （注意用 127.0.0.1 而非 localhost）
 const SPOTIFY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = [];
