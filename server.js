@@ -2,7 +2,6 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
 
 const PORT = 8080;
 const ROOT = __dirname;
@@ -20,14 +19,28 @@ const MIME = {
 
 // Proxy external APIs to bypass network restrictions
 function proxyRequest(req, res, targetBase) {
-  const parsed = url.parse(req.url);
-  const targetUrl = targetBase + parsed.path.replace('/api/deezer', '') + (parsed.search || '');
+  const reqUrl = new URL(req.url, 'http://localhost');
+  const apiPath = reqUrl.pathname.replace('/api/deezer', '') + reqUrl.search;
+  const targetUrl = targetBase + apiPath;
 
   console.log('[Proxy] ->', targetUrl);
 
+  const targetParsed = new URL(targetUrl);
+  let responded = false;
+
+  function reply(status, body) {
+    if(responded) return;
+    responded = true;
+    res.writeHead(status, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+    });
+    res.end(typeof body === 'string' ? body : JSON.stringify(body));
+  }
+
   const opts = {
-    hostname: url.parse(targetBase).hostname,
-    path: targetUrl.replace(targetBase, ''),
+    hostname: targetParsed.hostname,
+    path: targetParsed.pathname + targetParsed.search,
     method: req.method,
     headers: {
       'User-Agent': 'MusicDiscovery/1.0',
@@ -39,34 +52,26 @@ function proxyRequest(req, res, targetBase) {
   const proxy = https.request(opts, (proxyRes) => {
     let body = '';
     proxyRes.on('data', chunk => body += chunk);
-    proxyRes.on('end', () => {
-      res.writeHead(proxyRes.statusCode || 200, {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': '*',
-      });
-      res.end(body);
-    });
+    proxyRes.on('end', () => reply(proxyRes.statusCode || 200, body));
   });
 
   proxy.on('error', (e) => {
     console.error('[Proxy] Error:', e.message);
-    res.writeHead(502);
-    res.end(JSON.stringify({ error: 'Proxy error: ' + e.message }));
+    reply(502, { error: 'Proxy error: ' + e.message });
   });
 
   proxy.on('timeout', () => {
     console.error('[Proxy] Timeout');
     proxy.destroy();
-    res.writeHead(504);
-    res.end(JSON.stringify({ error: 'Proxy timeout' }));
+    reply(504, { error: 'Proxy timeout' });
   });
 
   proxy.end();
 }
 
 http.createServer((req, res) => {
-  const parsed = url.parse(req.url);
-  let urlPath = parsed.pathname;
+  const reqUrl = new URL(req.url, 'http://localhost');
+  let urlPath = reqUrl.pathname;
 
   // Proxy Deezer API
   if (urlPath.startsWith('/api/deezer/')) {
