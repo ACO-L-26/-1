@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Discovery Engine</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #14141f;
+  --surface2: #1e1e2e;
+  --text: #e0e0e8;
+  --text2: #9090a8;
+  --accent: #1db954;
+  --accent2: #1ed760;
+  --danger: #e74c3c;
+  --border: #2a2a3a;
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Header */
+header{
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.logo{
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo span{color:var(--accent)}
+
+.btn{
+  padding: 10px 20px;
+  border: none;
+  border-radius: 24px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--text2)}
+.btn-outline.active{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* Main Layout */
+main{max-width:1000px;margin:0 auto;padding:24px}
+
+.step{display:none}
+.step.active{display:block}
+
+/* Step Indicator */
+.steps-bar{
+  display: flex;
+  gap: 4px;
+  margin-bottom: 32px;
+}
+.steps-bar .dot{
+  flex:1;height:4px;border-radius:2px;background:var(--surface2);
+  transition: background .3s;
+}
+.steps-bar .dot.done{background:var(--accent)}
+.steps-bar .dot.current{background:var(--accent2)}
+
+h2{
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.subtitle{color:var(--text2);margin-bottom:20px;font-size:.92rem}
+
+/* Song Input Cards */
+.input-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.input-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.input-card .num{
+  font-size: .75rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.input-card input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:8px 10px;
+  color:var(--text);
+  font-size:.88rem;
+  outline:none;
+  transition:border .2s;
+}
+.input-card input:focus{border-color:var(--accent)}
+
+/* Search Results */
+.search-results{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.search-result{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 16px;
+  cursor:pointer;transition:all .2s;
+}
+.search-result:hover{border-color:var(--accent);background:var(--surface2)}
+.search-result.selected{border-color:var(--accent);background:#1db95415}
+.search-result img{width:48px;height:48px;border-radius:4px;object-fit:cover}
+.search-result .info{flex:1}
+.search-result .info .name{font-weight:600;font-size:.92rem}
+.search-result .info .artist{color:var(--text2);font-size:.82rem}
+.search-result .check{
+  color:var(--accent);
+  font-size:1.2rem;
+  display:none;
+}
+.search-result.selected .check{display:block}
+
+/* Recommendations */
+.rec-cards{display:grid;grid-template-columns: repeat(3, 1fr); gap:14px; margin-bottom:24px}
+.rec-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;text-align:center;
+  cursor:pointer;transition:all .2s;position:relative;
+}
+.rec-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.rec-card.picked{border-color:var(--accent);background:#1db95410}
+.rec-card img{width:120px;height:120px;border-radius:6px;object-fit:cover;margin-bottom:12px}
+.rec-card .track-name{font-weight:700;margin-bottom:4px;font-size:.95rem}
+.rec-card .track-artist{color:var(--text2);font-size:.82rem;margin-bottom:10px}
+.rec-card audio{width:100%;height:32px;border-radius:16px;margin-top:8px}
+.rec-card audio::-webkit-media-controls-panel{background:var(--surface2)}
+.rec-card .pick-btn{
+  margin-top:10px;
+  width:100%;
+}
+.rec-card .badge{
+  position:absolute;top:10px;right:10px;
+  background:var(--accent);color:#000;
+  font-size:.7rem;font-weight:700;
+  padding:3px 8px;border-radius:10px;
+}
+
+/* Features tags */
+.features{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.features .tag{
+  font-size:.72rem;padding:3px 8px;
+  border-radius:10px;
+  background:var(--surface2);
+  color:var(--text2);
+}
+
+/* Cycle info */
+.cycle-info{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:20px;flex-wrap:wrap;
+}
+.cycle-badge{
+  background:var(--accent);color:#000;
+  font-weight:700;padding:6px 16px;border-radius:20px;
+  font-size:.88rem;
+}
+
+/* Pool display */
+.pool-display{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;
+}
+.pool-track{
+  background:var(--surface2);padding:6px 12px;
+  border-radius:16px;font-size:.8rem;
+  display:flex;align-items:center;gap:6px;
+}
+.pool-track .remove{color:var(--danger);cursor:pointer;font-weight:700}
+
+/* Final Table */
+.final-table{
+  width:100%;border-collapse:collapse;margin-top:16px;
+  font-size:.85rem;
+}
+.final-table th{
+  background:var(--surface);
+  text-align:left;padding:12px 14px;
+  border-bottom:2px solid var(--border);
+  font-weight:700;color:var(--text2);font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.final-table td{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.final-table tr:hover td{background:var(--surface2)}
+.final-table .track-cell{display:flex;align-items:center;gap:8px}
+.final-table .track-cell img{width:32px;height:32px;border-radius:3px}
+.final-table .rec-list{display:flex;flex-wrap:wrap;gap:4px}
+.final-table .rec-list span{
+  background:var(--surface2);padding:2px 8px;border-radius:10px;font-size:.78rem;
+}
+
+/* Loading */
+.spinner{
+  display:inline-block;width:18px;height:18px;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{
+  position:fixed;inset:0;background:#00000080;
+  display:flex;align-items:center;justify-content:center;z-index:200;
+}
+.loading-box{
+  background:var(--surface);border-radius:var(--radius);
+  padding:32px 40px;text-align:center;
+}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);
+  padding:12px 24px;border-radius:24px;font-size:.88rem;
+  box-shadow:var(--shadow);z-index:300;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>♪</span> Music Discovery</div>
+  <div id="auth-area">
+    <button id="btn-login" class="btn btn-primary" onclick="SpotifyAuth.login()">Connect Spotify</button>
+    <span id="user-info" style="display:none;color:var(--accent);font-size:.88rem"></span>
+  </div>
+</header>
+
+<main>
+  <!-- Step indicators -->
+  <div class="steps-bar" id="steps-bar">
+    <div class="dot current" data-step="0"></div>
+    <div class="dot" data-step="1"></div>
+    <div class="dot" data-step="2"></div>
+    <div class="dot" data-step="3"></div>
+  </div>
+
+  <!-- Step 0: Search songs -->
+  <section class="step active" id="step-search">
+    <h2>输入 5 首你喜欢的歌曲</h2>
+    <p class="subtitle">输入歌名搜索，从结果中选择匹配的歌曲</p>
+    <div class="input-grid" id="input-grid"></div>
+    <div id="search-results-container"></div>
+    <div id="selected-songs-summary" style="margin-bottom:16px"></div>
+    <button class="btn btn-primary" id="btn-analyze" disabled onclick="App.startRecommendations()">
+      分析歌曲并获取推荐
+    </button>
+  </section>
+
+  <!-- Step 1: Recommendations cycle -->
+  <section class="step" id="step-recommend">
+    <div class="cycle-info">
+      <span class="cycle-badge" id="cycle-badge">第 1 / 5 轮</span>
+      <span style="color:var(--text2);font-size:.88rem" id="pool-info"></span>
+    </div>
+    <h2>为你推荐的歌曲</h2>
+    <p class="subtitle">试听每首歌，选一首你最喜欢的加入种子池</p>
+    <div class="rec-cards" id="rec-cards"></div>
+    <button class="btn btn-outline" id="btn-skip" onclick="App.skipCycle()" style="display:none">
+      跳过本轮
+    </button>
+  </section>
+
+  <!-- Step 2: Final table -->
+  <section class="step" id="step-final">
+    <h2>推荐结果总览</h2>
+    <p class="subtitle">基于你最初5首歌曲，经过5轮推荐的结果</p>
+    <div style="overflow-x:auto">
+      <table class="final-table" id="final-table"></table>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="App.reset()">重新开始</button>
+      <button class="btn btn-outline" id="btn-export" onclick="App.exportCSV()">导出 CSV</button>
+    </div>
+  </section>
+</main>
+
+<div class="loading-overlay" id="loading" style="display:none">
+  <div class="loading-box">
+    <div class="spinner" style="width:32px;height:32px;border-width:3px;margin-bottom:12px"></div>
+    <p style="color:var(--text2)" id="loading-text"></p>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ===================== CONFIG =====================
+const SPOTIFY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID';
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+const SCOPES = [];
+
+// ===================== UTILITIES =====================
+function $(id){return document.getElementById(id)}
+function showLoading(msg){$('loading').style.display='flex';$('loading-text').textContent=msg||''}
+function hideLoading(){$('loading').style.display='none'}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('toast-container').appendChild(t);setTimeout(()=>t.remove(),2500)}
+
+// ===================== SPOTIFY AUTH (PKCE) =====================
+const SpotifyAuth = {
+  async login(){
+    const cv = this._generateRandom(64);
+    sessionStorage.setItem('code_verifier', cv);
+    const cc = await this._challenge(cv);
+    sessionStorage.setItem('code_challenge', cc);
+    const params = new URLSearchParams({
+      client_id: SPOTIFY_CLIENT_ID,
+      response_type: 'code',
+      redirect_uri: REDIRECT_URI,
+      code_challenge_method: 'S256',
+      code_challenge: cc,
+      scope: SCOPES.join(' ')
+    });
+    window.location = 'https://accounts.spotify.com/authorize?' + params;
+  },
+
+  async handleCallback(){
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if(!code) return false;
+    const cv = sessionStorage.getItem('code_verifier');
+    if(!cv){console.error('Missing code_verifier');return false}
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: REDIRECT_URI,
+      client_id: SPOTIFY_CLIENT_ID,
+      code_verifier: cv
+    });
+    try {
+      const res = await fetch('https://accounts.spotify.com/api/token', {
+        method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body
+      });
+      if(!res.ok) throw new Error('Token exchange failed');
+      const data = await res.json();
+      sessionStorage.setItem('access_token', data.access_token);
+      if(data.refresh_token) sessionStorage.setItem('refresh_token', data.refresh_token);
+      const expiresAt = Date.now() + (data.expires_in - 60) * 1000;
+      sessionStorage.setItem('token_expires', expiresAt);
+      window.history.replaceState({}, '', REDIRECT_URI);
+      return true;
+    } catch(e){console.error(e);return false}
+  },
+
+  async refreshToken(){
+    const rt = sessionStorage.getItem('refresh_token');
+    if(!rt) return false;
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: rt,
+      client_id: SPOTIFY_CLIENT_ID
+    });
+    try {
+      const res = await fetch('https://accounts.spotify.com/api/token', {
+        method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body
+      });
+      if(!res.ok) return false;
+      const data = await res.json();
+      sessionStorage.setItem('access_token', data.access_token);
+      if(data.refresh_token) sessionStorage.setItem('refresh_token', data.refresh_token);
+      const expiresAt = Date.now() + (data.expires_in - 60) * 1000;
+      sessionStorage.setItem('token_expires', expiresAt);
+      return true;
+    } catch(e){return false}
+  },
+
+  getAccessToken(){
+    return sessionStorage.getItem('access_token');
+  },
+
+  async ensureToken(){
+    const token = this.getAccessToken();
+    if(!token) return false;
+    const expires = parseInt(sessionStorage.getItem('token_expires'));
+    if(Date.now() > expires){
+      return await this.refreshToken();
+    }
+    return true;
+  },
+
+  isLoggedIn(){return !!this.getAccessToken()},
+
+  logout(){
+    ['access_token','refresh_token','token_expires','code_verifier','code_challenge'].forEach(k=>sessionStorage.removeItem(k));
+    window.location.reload();
+  },
+
+  _generateRandom(len){
+    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const arr=new Uint8Array(len);crypto.getRandomValues(arr);
+    return Array.from(arr,x=>chars[x%chars.length]).join('');
+  },
+
+  async _challenge(v){
+    const enc=new TextEncoder().encode(v);
+    const hash=await crypto.subtle.digest('SHA-256', enc);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)))
+      .replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  }
+};
+
+// ===================== SPOTIFY API =====================
+const SpotifyAPI = {
+  async _fetch(url, opts={}){
+    const ok = await SpotifyAuth.ensureToken();
+    if(!ok) throw new Error('Not authenticated');
+    const token = SpotifyAuth.getAccessToken();
+    const res = await fetch(url, {
+      ...opts,
+      headers: {...opts.headers, 'Authorization': 'Bearer ' + token}
+    });
+    if(res.status === 401){
+      const refreshed = await SpotifyAuth.refreshToken();
+      if(refreshed){
+        const token2 = SpotifyAuth.getAccessToken();
+        return fetch(url, {
+          ...opts,
+          headers: {...opts.headers, 'Authorization': 'Bearer ' + token2}
+        });
+      }
+      throw new Error('Auth failed');
+    }
+    if(!res.ok){
+      const text = await res.text();
+      throw new Error(`API error ${res.status}: ${text}`);
+    }
+    return res.json();
+  },
+
+  async searchTracks(query){
+    const data = await this._fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`
+    );
+    return data.tracks.items;
+  },
+
+  async getAudioFeatures(trackIds){
+    const data = await this._fetch(
+      `https://api.spotify.com/v1/audio-features?ids=${trackIds.join(',')}`
+    );
+    return data.audio_features;
+  },
+
+  async getRecommendations(seedTrackIds, targetFeatures){
+    let url = `https://api.spotify.com/v1/recommendations?limit=3&seed_tracks=${seedTrackIds.slice(0,5).join(',')}`;
+    if(targetFeatures){
+      if(targetFeatures.danceability)
+        url += `&target_danceability=${targetFeatures.danceability.toFixed(2)}`;
+      if(targetFeatures.energy)
+        url += `&target_energy=${targetFeatures.energy.toFixed(2)}`;
+      if(targetFeatures.valence)
+        url += `&target_valence=${targetFeatures.valence.toFixed(2)}`;
+      if(targetFeatures.tempo)
+        url += `&target_tempo=${Math.round(targetFeatures.tempo)}`;
+    }
+    const data = await this._fetch(url);
+    return data.tracks;
+  },
+
+  async getTracks(ids){
+    const data = await this._fetch(`https://api.spotify.com/v1/tracks?ids=${ids.join(',')}`);
+    return data.tracks;
+  }
+};
+
+// ===================== APP STATE =====================
+const App = {
+  seedPool: [],       // Original 5 + selected tracks {id, name, artist, albumImg, features}
+  originalSeeds: [],  // Copy of first 5
+  currentRecs: [],    // Current 3 recommendations
+  cycleResults: [],   // [{cycle, recs[], picked}]
+  currentCycle: 0,
+  totalCycles: 5,
+  searchSelects: Array(5).fill(null), // Selected tracks from search
+
+  async init(){
+    // Handle OAuth callback
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('code')){
+      showLoading('Authenticating...');
+      const ok = await SpotifyAuth.handleCallback();
+      hideLoading();
+      if(ok) toast('Spotify 连接成功');
+      else toast('认证失败，请重试');
+    }
+
+    this.updateAuthUI();
+    this.renderSearchInputs();
+    this.updateStepBar(0);
+  },
+
+  updateAuthUI(){
+    if(SpotifyAuth.isLoggedIn()){
+      $('btn-login').style.display='none';
+      $('user-info').style.display='inline';
+      $('user-info').textContent='✓ Connected';
+    } else {
+      $('btn-login').style.display='inline-block';
+      $('user-info').style.display='none';
+    }
+  },
+
+  updateStepBar(step){
+    const dots = document.querySelectorAll('#steps-bar .dot');
+    dots.forEach((d,i)=>{
+      d.classList.remove('done','current');
+      if(i < step) d.classList.add('done');
+      if(i === step) d.classList.add('current');
+    });
+  },
+
+  // ------ Step 0: Search ------
+  renderSearchInputs(){
+    const grid = $('input-grid');
+    grid.innerHTML = '';
+    for(let i=0; i<5; i++){
+      const card = document.createElement('div');
+      card.className = 'input-card';
+      card.innerHTML = `
+        <div class="num">歌曲 ${i+1}</div>
+        <input type="text" placeholder="歌名 + 歌手..." id="search-input-${i}"
+               oninput="App.onSearchInput(${i}, this.value)"
+               onfocus="App.onSearchFocus(${i})">
+        <div id="search-results-${i}" class="search-results" style="margin-top:8px"></div>
+        <div id="search-selected-${i}" style="margin-top:8px"></div>
+      `;
+      grid.appendChild(card);
+    }
+    this.checkAllSelected();
+  },
+
+  onSearchFocus(idx){
+    // Hide other search results
+    for(let i=0;i<5;i++){
+      if(i!==idx) $('search-results-'+i).innerHTML='';
+    }
+  },
+
+  renderSearchResults(idx, tracks){
+    const container = $('search-results-'+idx);
+    container.innerHTML = tracks.map(t => {
+      const sel = this.searchSelects[idx] && this.searchSelects[idx].id === t.id;
+      return `
+        <div class="search-result ${sel?'selected':''}" onclick="App.selectSearchResult(${idx}, '${t.id.replace(/'/g,"\\'")}')">
+          <img src="${t.album.images[0]?.url || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23333%22 width=%2248%22 height=%2248%22/></svg>'}" alt="">
+          <div class="info">
+            <div class="name">${this._esc(t.name)}</div>
+            <div class="artist">${t.artists.map(a=>a.name).join(', ')}</div>
+          </div>
+          <div class="check">✓</div>
+        </div>`;
+    }).join('');
+  },
+
+  selectSearchResult(idx, trackId){
+    const cached = this._searchCache && this._searchCache[idx];
+    if(cached){
+      const track = cached.find(t => t.id === trackId);
+      if(track){
+        this.searchSelects[idx] = {
+          id: track.id,
+          name: track.name,
+          artist: track.artists.map(a=>a.name).join(', '),
+          albumImg: track.album.images[0]?.url || ''
+        };
+      }
+      this.renderSearchResults(idx, cached);
+    }
+    this.showSelectedTrack(idx);
+    this.checkAllSelected();
+  },
+
+  _searchCache: Array(5).fill(null),
+
+  async onSearchInput(idx, query){
+    if(query.length < 2){ $('search-results-'+idx).innerHTML=''; this._searchCache[idx]=null; return }
+    if(!SpotifyAuth.isLoggedIn()){ toast('请先连接 Spotify'); return }
+    try {
+      const tracks = await SpotifyAPI.searchTracks(query);
+      this._searchCache[idx] = tracks;
+      this.renderSearchResults(idx, tracks);
+    } catch(e){
+      console.error(e);
+      $('search-results-'+idx).innerHTML = '<div style="color:var(--danger);font-size:.82rem">搜索失败</div>';
+    }
+  },
+
+  showSelectedTrack(idx){
+    const sel = this.searchSelects[idx];
+    const container = $('search-selected-'+idx);
+    if(sel){
+      container.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);padding:8px 12px;border-radius:8px">
+          <img src="${sel.albumImg}" style="width:32px;height:32px;border-radius:3px" onerror="this.style.display='none'">
+          <span style="font-weight:600;font-size:.85rem">${this._esc(sel.name)}</span>
+          <span style="color:var(--text2);font-size:.78rem">${this._esc(sel.artist)}</span>
+          <span style="margin-left:auto;color:var(--accent);cursor:pointer;font-size:.82rem" onclick="App.clearSelection(${idx})">✕</span>
+        </div>`;
+    } else {
+      container.innerHTML = '';
+    }
+  },
+
+  clearSelection(idx){
+    this.searchSelects[idx] = null;
+    this.showSelectedTrack(idx);
+    if(this._searchCache[idx]) this.renderSearchResults(idx, this._searchCache[idx]);
+    this.checkAllSelected();
+  },
+
+  checkAllSelected(){
+    const all = this.searchSelects.every(s => s !== null);
+    $('btn-analyze').disabled = !all || !SpotifyAuth.isLoggedIn();
+  },
+
+  // ------ Step 1: Recommendations ------
+  async startRecommendations(){
+    if(!this.searchSelects.every(s=>s)) return;
+    showLoading('正在分析歌曲特征...');
+
+    try {
+      // Get audio features for all 5
+      const ids = this.searchSelects.map(s=>s.id);
+      const features = await SpotifyAPI.getAudioFeatures(ids);
+
+      this.seedPool = this.searchSelects.map((s,i)=>({
+        id: s.id, name: s.name, artist: s.artist,
+        albumImg: s.albumImg,
+        features: features[i] || {}
+      }));
+      this.originalSeeds = [...this.seedPool];
+      this.cycleResults = [];
+      this.currentCycle = 0;
+
+      this.showStep('recommend');
+      await this.runCycle();
+    } catch(e){
+      console.error(e);
+      toast('分析失败: ' + e.message);
+    }
+    hideLoading();
+  },
+
+  async runCycle(){
+    if(this.currentCycle >= this.totalCycles){
+      this.showFinalResults();
+      return;
+    }
+
+    this.currentCycle++;
+    $('cycle-badge').textContent = `第 ${this.currentCycle} / ${this.totalCycles} 轮`;
+    $('pool-info').textContent = `种子池: ${this.seedPool.length} 首歌曲`;
+    this.updateStepBar(1);
+
+    showLoading(`第 ${this.currentCycle} 轮推荐中...`);
+
+    try {
+      // Use up to 5 most recent tracks from pool as seeds
+      const seeds = this.seedPool.slice(-5);
+      const seedIds = seeds.map(s => s.id);
+
+      // Compute average audio features for targeted recommendations
+      const targetFeatures = this._computeAvgFeatures(seeds);
+
+      const recs = await SpotifyAPI.getRecommendations(seedIds, targetFeatures);
+      this.currentRecs = recs;
+
+      this.renderRecommendations(recs);
+    } catch(e){
+      console.error(e);
+      toast('推荐请求失败: ' + e.message);
+    }
+
+    hideLoading();
+  },
+
+  renderRecommendations(tracks){
+    const container = $('rec-cards');
+    container.innerHTML = tracks.map((t, i) => `
+      <div class="rec-card" id="rec-card-${i}">
+        <div class="badge">#${i+1}</div>
+        <img src="${t.album.images[0]?.url || ''}" alt="" onerror="this.style.display='none'">
+        <div class="track-name">${this._esc(t.name)}</div>
+        <div class="track-artist">${t.artists.map(a=>a.name).join(', ')}</div>
+        ${t.preview_url ? `<audio controls src="${t.preview_url}"></audio>` : '<div style="color:var(--text2);font-size:.75rem;margin:8px 0">无预览</div>'}
+        <button class="btn btn-primary pick-btn" onclick="App.pickSong(${i})" style="margin-top:8px">
+          选这首 ♪
+        </button>
+      </div>
+    `).join('');
+  },
+
+  async pickSong(idx){
+    const picked = this.currentRecs[idx];
+    if(!picked) return;
+
+    showLoading('获取歌曲特征...');
+
+    try {
+      // Get audio features
+      const [features] = await SpotifyAPI.getAudioFeatures([picked.id]);
+
+      const pickedTrack = {
+        id: picked.id,
+        name: picked.name,
+        artist: picked.artists.map(a=>a.name).join(', '),
+        albumImg: picked.album.images[0]?.url || '',
+        features: features || {}
+      };
+
+      // Record cycle result
+      this.cycleResults.push({
+        cycle: this.currentCycle,
+        recs: this.currentRecs.map(t => ({
+          name: t.name,
+          artist: t.artists.map(a=>a.name).join(', '),
+          albumImg: t.album.images[0]?.url || ''
+        })),
+        picked: pickedTrack
+      });
+
+      // Add to seed pool
+      this.seedPool.push(pickedTrack);
+
+      // Highlight picked card
+      document.querySelectorAll('.rec-card').forEach(c => c.classList.remove('picked'));
+      const card = document.getElementById('rec-card-'+idx);
+      if(card) card.classList.add('picked');
+
+      // Disable all pick buttons
+      document.querySelectorAll('.pick-btn').forEach(b => b.disabled = true);
+
+      toast(`已选择: ${pickedTrack.name}`);
+
+      // Wait a moment then next cycle
+      setTimeout(() => this.runCycle(), 1200);
+    } catch(e){
+      console.error(e);
+      toast('获取歌曲信息失败');
+    }
+    hideLoading();
+  },
+
+  skipCycle(){
+    // Just proceed without picking
+    this.currentCycle--;
+    this.runCycle();
+  },
+
+  _computeAvgFeatures(seedTracks){
+    const valid = seedTracks.filter(s => s.features && Object.keys(s.features).length > 0);
+    if(valid.length < 2) return null;
+    const keys = ['danceability','energy','valence','tempo','acousticness','instrumentalness'];
+    const avg = {};
+    keys.forEach(k => {
+      const sum = valid.reduce((acc,s) => acc + (s.features[k] || 0), 0);
+      avg[k] = sum / valid.length;
+    });
+    return avg;
+  },
+
+  // ------ Final ------
+  showFinalResults(){
+    this.showStep('final');
+    this.updateStepBar(2);
+
+    const tbody = $('final-table');
+    let html = `<thead><tr>
+      <th>轮次</th><th>该轮3首推荐歌曲</th><th>用户选中歌曲</th><th>选中歌曲特征</th>
+    </tr></thead><tbody>`;
+
+    this.cycleResults.forEach(r => {
+      const f = r.picked.features || {};
+      const featStr = [
+        f.danceability != null ? `舞感:${(f.danceability*100).toFixed(0)}%` : '',
+        f.energy != null ? `能量:${(f.energy*100).toFixed(0)}%` : '',
+        f.valence != null ? `情绪:${(f.valence*100).toFixed(0)}%` : '',
+        f.tempo != null ? `BPM:${Math.round(f.tempo)}` : '',
+        f.acousticness != null ? `原声:${(f.acousticness*100).toFixed(0)}%` : '',
+        f.key != null ? `调性:${f.key}` : '',
+      ].filter(Boolean).join(' | ');
+
+      html += `<tr>
+        <td><strong>第 ${r.cycle} 轮</strong></td>
+        <td>
+          <div class="rec-list">
+            ${r.recs.map(rec => `<span>${this._esc(rec.name)}<br><small style="color:var(--text2)">${this._esc(rec.artist)}</small></span>`).join('')}
+          </div>
+        </td>
+        <td>
+          <div class="track-cell">
+            ${r.picked.albumImg ? `<img src="${r.picked.albumImg}" alt="">` : ''}
+            <div><strong>${this._esc(r.picked.name)}</strong><br><small style="color:var(--text2)">${this._esc(r.picked.artist)}</small></div>
+          </div>
+        </td>
+        <td style="font-size:.8rem">${featStr || '—'}</td>
+      </tr>`;
+    });
+
+    html += '</tbody>';
+    tbody.innerHTML = html;
+  },
+
+  showStep(stepName){
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    const map = {search: 'step-search', recommend: 'step-recommend', final: 'step-final'};
+    const el = $(map[stepName]);
+    if(el) el.classList.add('active');
+  },
+
+  reset(){
+    this.searchSelects = Array(5).fill(null);
+    this.seedPool = [];
+    this.originalSeeds = [];
+    this.currentRecs = [];
+    this.cycleResults = [];
+    this.currentCycle = 0;
+    this._searchCache = Array(5).fill(null);
+    this.showStep('search');
+    this.updateStepBar(0);
+    this.renderSearchInputs();
+  },
+
+  exportCSV(){
+    let csv = '轮次,推荐歌曲1,推荐歌曲2,推荐歌曲3,选中歌曲,选中歌手,舞感,能量,情绪,BPM\n';
+    this.cycleResults.forEach(r => {
+      const f = r.picked.features || {};
+      csv += [
+        r.cycle,
+        `"${r.recs[0]?.name||''}"`,
+        `"${r.recs[1]?.name||''}"`,
+        `"${r.recs[2]?.name||''}"`,
+        `"${r.picked.name}"`,
+        `"${r.picked.artist}"`,
+        f.danceability!=null ? (f.danceability*100).toFixed(0)+'%' : '',
+        f.energy!=null ? (f.energy*100).toFixed(0)+'%' : '',
+        f.valence!=null ? (f.valence*100).toFixed(0)+'%' : '',
+        f.tempo!=null ? Math.round(f.tempo) : '',
+      ].join(',') + '\n';
+    });
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'music-recommendations.csv';
+    a.click();
+    toast('CSV 已下载');
+  },
+
+  _esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+};
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
