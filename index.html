@@ -11,8 +11,8 @@
   --surface2: #1e1e2e;
   --text: #e0e0e8;
   --text2: #9090a8;
-  --accent: #d9232e;
-  --accent2: #ff4050;
+  --accent: #ef5466;
+  --accent2: #ff7080;
   --border: #2a2a3a;
   --radius: 10px;
   --shadow: 0 4px 24px rgba(0,0,0,.4);
@@ -37,24 +37,13 @@ header{
   top: 0;
   z-index: 100;
 }
-.logo{
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -.3px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.logo{font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:8px}
 .logo em{color:var(--accent);font-style:normal}
+.logo small{color:var(--text2);font-size:.7rem;font-weight:400}
 
 .btn{
-  padding: 10px 20px;
-  border: none;
-  border-radius: 24px;
-  font-size: .9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
+  padding: 10px 20px;border:none;border-radius:24px;
+  font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;
 }
 .btn-primary{background:var(--accent);color:#fff}
 .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
@@ -67,50 +56,21 @@ main{max-width:1000px;margin:0 auto;padding:24px}
 .step{display:none}
 .step.active{display:block}
 
-.steps-bar{
-  display: flex;
-  gap: 4px;
-  margin-bottom: 32px;
-}
-.steps-bar .dot{
-  flex:1;height:4px;border-radius:2px;background:var(--surface2);
-  transition: background .3s;
-}
+.steps-bar{display:flex;gap:4px;margin-bottom:32px}
+.steps-bar .dot{flex:1;height:4px;border-radius:2px;background:var(--surface2);transition:background .3s}
 .steps-bar .dot.done{background:var(--accent)}
 .steps-bar .dot.current{background:var(--accent2)}
 
 h2{font-size:1.5rem;margin-bottom:8px}
 .subtitle{color:var(--text2);margin-bottom:20px;font-size:.92rem}
 
-/* Song Input Grid */
-.input-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
-  gap:12px;
-  margin-bottom:20px;
-}
-.input-card{
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-}
-.input-card .num{
-  font-size: .75rem;
-  color: var(--accent);
-  font-weight: 700;
-  margin-bottom: 6px;
-}
+/* Input Grid */
+.input-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.input-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.input-card .num{font-size:.75rem;color:var(--accent);font-weight:700;margin-bottom:6px}
 .input-card input{
-  width:100%;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:8px 10px;
-  color:var(--text);
-  font-size:.88rem;
-  outline:none;
-  transition:border .2s;
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;color:var(--text);font-size:.88rem;outline:none;transition:border .2s;
 }
 .input-card input:focus{border-color:var(--accent)}
 
@@ -119,32 +79,29 @@ h2{font-size:1.5rem;margin-bottom:8px}
 .search-result{
   display:flex;align-items:center;gap:10px;
   background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;padding:10px 12px;
-  cursor:pointer;transition:all .15s;
+  border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;
 }
 .search-result:hover{border-color:var(--accent)}
-.search-result.selected{border-color:var(--accent);background:rgba(217,35,46,.1)}
-.search-result img{width:40px;height:40px;border-radius:3px;object-fit:cover;background:var(--surface)}
+.search-result.selected{border-color:var(--accent);background:rgba(239,84,102,.1)}
+.search-result img{width:40px;height:40px;border-radius:3px;object-fit:cover;background:var(--surface);flex-shrink:0}
 .search-result .info{flex:1;min-width:0}
-.search-result .info .name{font-weight:600;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.search-result .info .artist{color:var(--text2);font-size:.75rem}
-.search-result .info .listeners{color:var(--text2);font-size:.68rem}
+.search-result .name{font-weight:600;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-result .artist{color:var(--text2);font-size:.75rem}
 .search-result .check{color:var(--accent);font-size:1rem;display:none;flex-shrink:0}
 .search-result.selected .check{display:block}
 
-/* Selected track badge */
 .selected-track{
   display:flex;align-items:center;gap:8px;
-  background:rgba(217,35,46,.1);border:1px solid var(--accent);
+  background:rgba(239,84,102,.1);border:1px solid var(--accent);
   padding:8px 12px;border-radius:8px;margin-top:8px;
 }
-.selected-track img{width:32px;height:32px;border-radius:3px}
+.selected-track img{width:32px;height:32px;border-radius:3px;object-fit:cover}
 .selected-track .name{font-weight:600;font-size:.85rem}
 .selected-track .artist{color:var(--text2);font-size:.75rem}
 .selected-track .clear-btn{margin-left:auto;color:var(--text2);cursor:pointer;font-size:.85rem}
 .selected-track .clear-btn:hover{color:var(--accent)}
 
-/* Recommendations */
+/* Recommendation Cards */
 .rec-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
 .rec-card{
   background:var(--surface);border:1px solid var(--border);
@@ -152,98 +109,46 @@ h2{font-size:1.5rem;margin-bottom:8px}
   cursor:pointer;transition:all .2s;position:relative;
 }
 .rec-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
-.rec-card.picked{border-color:var(--accent);background:rgba(217,35,46,.08)}
+.rec-card.picked{border-color:var(--accent);background:rgba(239,84,102,.08)}
 .rec-card img{width:100px;height:100px;border-radius:6px;object-fit:cover;margin-bottom:12px;background:var(--surface2)}
 .rec-card .track-name{font-weight:700;margin-bottom:4px;font-size:.92rem}
 .rec-card .track-artist{color:var(--text2);font-size:.8rem;margin-bottom:8px}
-.rec-card .match-score{
-  display:inline-block;background:var(--surface2);
-  padding:3px 10px;border-radius:10px;font-size:.72rem;
-  color:var(--text2);margin-bottom:10px;
+.rec-card audio{width:100%;height:32px;margin-bottom:8px;border-radius:16px}
+.rec-card audio::-webkit-media-controls-panel{background:var(--surface2)}
+.rec-card .score{
+  display:inline-block;padding:3px 10px;border-radius:10px;font-size:.72rem;
+  color:var(--text2);margin-bottom:6px;
 }
-.rec-card .score-high{color:var(--accent2);font-weight:700}
+.rec-card .score-hi{color:var(--accent2);font-weight:700;background:var(--surface2)}
+.rec-card .reason{font-size:.7rem;color:var(--accent);margin-bottom:8px}
 .rec-card .badge{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:10px}
 
-/* Tags */
-.tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
-.tags .tag{font-size:.7rem;padding:3px 8px;border-radius:10px;background:var(--surface2);color:var(--text2)}
-
 /* Cycle info */
-.cycle-info{
-  display:flex;align-items:center;gap:12px;
-  margin-bottom:20px;flex-wrap:wrap;
-}
-.cycle-badge{
-  background:var(--accent);color:#fff;
-  font-weight:700;padding:6px 16px;border-radius:20px;
-  font-size:.88rem;
-}
-
-/* Seed pool */
-.pool-header{font-size:.85rem;color:var(--text2);margin-bottom:8px}
-.pool-display{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.pool-track{
-  background:var(--surface2);padding:5px 12px;
-  border-radius:16px;font-size:.78rem;
-  display:flex;align-items:center;gap:6px;
-}
+.cycle-info{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.cycle-badge{background:var(--accent);color:#fff;font-weight:700;padding:6px 16px;border-radius:20px;font-size:.88rem}
 
 /* Final Table */
-.final-table{
-  width:100%;border-collapse:collapse;margin-top:16px;
-  font-size:.85rem;
-}
+.final-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:.85rem}
 .final-table th{
-  background:var(--surface);
-  text-align:left;padding:12px 14px;
-  border-bottom:2px solid var(--border);
-  font-weight:700;color:var(--text2);font-size:.75rem;
-  text-transform:uppercase;letter-spacing:.5px;
+  background:var(--surface);text-align:left;padding:12px 14px;
+  border-bottom:2px solid var(--border);font-weight:700;color:var(--text2);
+  font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;
 }
-.final-table td{
-  padding:12px 14px;
-  border-bottom:1px solid var(--border);
-  vertical-align:top;
-}
+.final-table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top}
 .final-table tr:hover td{background:var(--surface2)}
 .final-table .track-cell{display:flex;align-items:center;gap:8px}
 .final-table .track-cell img{width:32px;height:32px;border-radius:3px;object-fit:cover}
 .final-table .rec-list{display:flex;flex-direction:column;gap:3px}
-.final-table .rec-list span{font-size:.8rem}
 
 /* Loading */
-.spinner{
-  display:inline-block;width:18px;height:18px;
-  border:2px solid var(--border);
-  border-top-color:var(--accent);
-  border-radius:50%;
-  animation:spin .6s linear infinite;
-}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);
-  display:flex;align-items:center;justify-content:center;z-index:200;
-}
-.loading-box{
-  background:var(--surface);border-radius:var(--radius);
-  padding:32px 40px;text-align:center;
-}
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+.loading-box{background:var(--surface);border-radius:var(--radius);padding:32px 40px;text-align:center}
 
-/* Toast */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:var(--surface);border:1px solid var(--border);
-  padding:12px 24px;border-radius:24px;font-size:.88rem;
-  box-shadow:var(--shadow);z-index:300;
-}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);padding:12px 24px;border-radius:24px;font-size:.88rem;box-shadow:var(--shadow);z-index:300}
 
-/* Responsive */
-@media(max-width:700px){
-  .rec-cards{grid-template-columns:1fr}
-  .input-grid{grid-template-columns:1fr}
-}
-
-/* Scrollbar */
+@media(max-width:700px){.rec-cards{grid-template-columns:1fr}.input-grid{grid-template-columns:1fr}}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -252,9 +157,9 @@ h2{font-size:1.5rem;margin-bottom:8px}
 <body>
 
 <header>
-  <div class="logo"><em>♪</em> Music Discovery</div>
-  <div>
-    <span style="color:var(--text2);font-size:.8rem">Powered by Last.fm</span>
+  <div class="logo">
+    <em>♪</em> Music Discovery
+    <small>Powered by Deezer</small>
   </div>
 </header>
 
@@ -265,31 +170,31 @@ h2{font-size:1.5rem;margin-bottom:8px}
     <div class="dot" data-step="2"></div>
   </div>
 
-  <!-- Step 0: Search songs -->
+  <!-- Step 0: Search -->
   <section class="step active" id="step-search">
     <h2>输入 5 首你喜欢的歌曲</h2>
     <p class="subtitle">输入歌名搜索，从候选列表中选择匹配的歌曲</p>
     <div class="input-grid" id="input-grid"></div>
     <button class="btn btn-primary" id="btn-analyze" disabled onclick="App.startRecommendations()">
-      分析歌曲并获取推荐
+      开始分析推荐
     </button>
   </section>
 
-  <!-- Step 1: Recommendations cycle -->
+  <!-- Step 1: Recommendations -->
   <section class="step" id="step-recommend">
     <div class="cycle-info">
       <span class="cycle-badge" id="cycle-badge">第 1 / 5 轮</span>
       <span style="color:var(--text2);font-size:.88rem" id="pool-info"></span>
     </div>
     <h2>为你推荐的歌曲</h2>
-    <p class="subtitle">每首种子歌曲通过 Last.fm 寻找相似推荐，综合评分后选出最佳3首</p>
+    <p class="subtitle">分析相关艺人，从关联艺人的热门歌曲中匹配推荐</p>
     <div class="rec-cards" id="rec-cards"></div>
   </section>
 
-  <!-- Step 2: Final table -->
+  <!-- Step 2: Final -->
   <section class="step" id="step-final">
     <h2>推荐结果总览</h2>
-    <p class="subtitle">基于你最初的5首歌曲，经过5轮推荐的结果</p>
+    <p class="subtitle">基于你的5首歌曲，经过5轮迭代推荐的结果</p>
     <div style="overflow-x:auto">
       <table class="final-table" id="final-table"></table>
     </div>
@@ -306,66 +211,55 @@ h2{font-size:1.5rem;margin-bottom:8px}
     <p style="color:var(--text2)" id="loading-text">加载中...</p>
   </div>
 </div>
-
 <div id="toast-container"></div>
 
 <script>
-// ===================== CONFIG =====================
-// 在 https://www.last.fm/api 免费注册获取 API Key
-const LASTFM_API_KEY = 'YOUR_LASTFM_API_KEY';
-const LASTFM_BASE = 'https://ws.audioscrobbler.com/2.0/';
-
-// ===================== UTILITIES =====================
+// ===================== UTILS =====================
 function $(id){return document.getElementById(id)}
 function showLoading(msg){$('loading').style.display='flex';$('loading-text').textContent=msg||'加载中...'}
 function hideLoading(){$('loading').style.display='none'}
-function toast(msg){
-  const t = document.createElement('div');
-  t.className='toast';t.textContent=msg;
-  $('toast-container').appendChild(t);
-  setTimeout(()=>t.remove(),2500);
-}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('toast-container').appendChild(t);setTimeout(()=>t.remove(),2500)}
 
-// ===================== LAST.FM API =====================
-const LastFM = {
-  async _call(method, params){
-    const url = new URL(LASTFM_BASE);
-    url.searchParams.set('method', method);
-    url.searchParams.set('api_key', LASTFM_API_KEY);
-    url.searchParams.set('format', 'json');
-    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, String(v)));
-    console.log('[LastFM] Calling:', method, params);
-    const res = await fetch(url.toString());
-    if(!res.ok){
-      const text = await res.text();
-      throw new Error(`HTTP ${res.status}: ${text.substring(0,200)}`);
+// ===================== DEEZER API =====================
+const Deezer = {
+  // Deezer API is free, no API key required, CORS enabled
+  _base: 'https://api.deezer.com',
+
+  async _get(path){
+    // Deezer API sometimes returns CORS issues; use corsproxy as fallback
+    const url = this._base + path;
+    console.log('[Deezer] GET', path);
+    try {
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    } catch(e){
+      // Fallback: try with a CORS proxy
+      console.warn('[Deezer] Direct call failed, trying proxy...');
+      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      const res = await fetch(proxyUrl);
+      if(!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
+      return JSON.parse(await res.text());
     }
-    const data = await res.json();
-    if(data.error) throw new Error(`Last.fm error ${data.error}: ${data.message}`);
-    return data;
   },
 
   async searchTracks(query, limit=5){
-    const data = await this._call('track.search', {track: query, limit});
-    return (data.results.trackmatches.track || []);
+    const data = await this._get(`/search/track?q=${encodeURIComponent(query)}&limit=${limit}`);
+    return data.data || [];
   },
 
-  async getSimilarTracks(trackName, artistName, limit=10){
-    const data = await this._call('track.getSimilar', {
-      track: trackName, artist: artistName, limit
-    });
-    return (data.similartracks.track || []);
+  async getArtistTopTracks(artistId, limit=10){
+    const data = await this._get(`/artist/${artistId}/top?limit=${limit}`);
+    return data.data || [];
   },
 
-  async getTrackInfo(trackName, artistName){
-    const data = await this._call('track.getInfo', {
-      track: trackName, artist: artistName, autocorrect: 1
-    });
-    return data.track;
+  async getRelatedArtists(artistId){
+    const data = await this._get(`/artist/${artistId}/related`);
+    return data.data || [];
   }
 };
 
-// ===================== APP STATE =====================
+// ===================== APP =====================
 const App = {
   searchSelects: Array(5).fill(null),
   _searchCache: Array(5).fill(null),
@@ -389,7 +283,7 @@ const App = {
     });
   },
 
-  // ------ Step 0: Search ------
+  // ------ Search ------
   renderSearchInputs(){
     const grid = $('input-grid');
     grid.innerHTML = '';
@@ -411,35 +305,23 @@ const App = {
   },
 
   onSearchFocus(idx){
-    for(let i=0;i<5;i++){
-      if(i!==idx) $('search-results-'+i).innerHTML='';
-    }
-  },
-
-  onSearchInput(idx, query){
-    console.log('[App] Search idx:', idx, 'query:', query);
-    if(query.length < 2){
-      $('search-results-'+idx).innerHTML='';
-      this._searchCache[idx]=null;
-      return;
-    }
-    this._debouncedSearch(idx, query);
+    for(let i=0;i<5;i++) if(i!==idx) $('search-results-'+i).innerHTML='';
   },
 
   _searchTimers: Array(5).fill(null),
-  _debouncedSearch(idx, query){
+
+  onSearchInput(idx, query){
+    if(query.length < 2){$('search-results-'+idx).innerHTML='';this._searchCache[idx]=null;return}
     if(this._searchTimers[idx]) clearTimeout(this._searchTimers[idx]);
     this._searchTimers[idx] = setTimeout(() => this._doSearch(idx, query), 350);
   },
 
   async _doSearch(idx, query){
     try {
-      const tracks = await LastFM.searchTracks(query);
-      console.log('[App] Found:', tracks.length, 'tracks');
+      const tracks = await Deezer.searchTracks(query);
       this._searchCache[idx] = tracks;
       this.renderSearchResults(idx, tracks);
     } catch(e){
-      console.error('[App] Search error:', e);
       $('search-results-'+idx).innerHTML =
         `<div style="color:var(--accent);font-size:.8rem;padding:8px">搜索失败: ${e.message}</div>`;
     }
@@ -448,27 +330,35 @@ const App = {
   renderSearchResults(idx, tracks){
     const container = $('search-results-'+idx);
     container.innerHTML = tracks.map(t => {
-      const sel = this.searchSelects[idx] && this.searchSelects[idx].mbid === t.mbid && t.mbid;
-      const img = this._getImage(t);
-      const listeners = t.listeners ? parseInt(t.listeners).toLocaleString()+' 次播放' : '';
+      const sel = this.searchSelects[idx] && this.searchSelects[idx].id === t.id;
+      const img = t.album && t.album.cover_small;
       return `
-        <div class="search-result ${sel?'selected':''}" onclick="App.selectSearchResult(${idx}, '${this._escAttr(t.name)}', '${this._escAttr(t.artist)}')">
-          ${img ? `<img src="${img}" alt="" onerror="this.style.display='none'">` : '<div style="width:40px;height:40px;border-radius:3px;background:var(--surface);flex-shrink:0"></div>'}
+        <div class="search-result ${sel?'selected':''}" onclick="App.selectSearchResult(${idx}, ${t.id})">
+          ${img ? `<img src="${img}" alt="" onerror="this.style.background='var(--surface)'">` : '<div style="width:40px;height:40px;border-radius:3px;background:var(--surface);flex-shrink:0"></div>'}
           <div class="info">
-            <div class="name">${this._esc(t.name)}</div>
-            <div class="artist">${this._esc(t.artist)}</div>
-            ${listeners ? `<div class="listeners">${listeners}</div>` : ''}
+            <div class="name">${this._esc(t.title)}</div>
+            <div class="artist">${this._esc(t.artist.name)} · ${this._esc(t.album.title)}</div>
           </div>
           <div class="check">✓</div>
         </div>`;
     }).join('');
   },
 
-  selectSearchResult(idx, trackName, artistName){
-    this.searchSelects[idx] = {name: trackName, artist: artistName};
-    // Re-render to show selection
+  selectSearchResult(idx, trackId){
     const cached = this._searchCache[idx];
-    if(cached) this.renderSearchResults(idx, cached);
+    if(!cached) return;
+    const track = cached.find(t => t.id === trackId);
+    if(!track) return;
+    this.searchSelects[idx] = {
+      id: track.id,
+      title: track.title,
+      artist: track.artist.name,
+      artistId: track.artist.id,
+      album: track.album.title,
+      cover: track.album.cover_medium || track.album.cover_small || '',
+      preview: track.preview || ''
+    };
+    this.renderSearchResults(idx, cached);
     this.showSelectedTrack(idx);
     this.checkAllSelected();
   },
@@ -476,17 +366,11 @@ const App = {
   showSelectedTrack(idx){
     const sel = this.searchSelects[idx];
     const container = $('search-selected-'+idx);
-    if(!sel){
-      container.innerHTML='';
-      return;
-    }
-    const cached = this._searchCache[idx];
-    const track = cached ? cached.find(t => t.name === sel.name && t.artist === sel.artist) : null;
-    const img = track ? this._getImage(track) : '';
+    if(!sel){container.innerHTML='';return}
     container.innerHTML = `
       <div class="selected-track">
-        ${img ? `<img src="${img}" alt="">` : ''}
-        <span class="name">${this._esc(sel.name)}</span>
+        ${sel.cover ? `<img src="${sel.cover}" alt="">` : ''}
+        <span class="name">${this._esc(sel.title)}</span>
         <span class="artist">${this._esc(sel.artist)}</span>
         <span class="clear-btn" onclick="event.stopPropagation();App.clearSelection(${idx})">✕</span>
       </div>`;
@@ -500,40 +384,17 @@ const App = {
   },
 
   checkAllSelected(){
-    const all = this.searchSelects.every(s => s !== null);
-    $('btn-analyze').disabled = !all;
+    $('btn-analyze').disabled = !this.searchSelects.every(s=>s!==null);
   },
 
-  // ------ Step 1: Recommendations ------
+  // ------ Recommendations ------
   async startRecommendations(){
     if(!this.searchSelects.every(s=>s)) return;
 
-    this.seedPool = this.searchSelects.map(s => ({
-      name: s.name, artist: s.artist, tags: []
-    }));
+    this.seedPool = this.searchSelects.map(s => ({...s}));
     this.originalSeeds = [...this.seedPool];
     this.cycleResults = [];
     this.currentCycle = 0;
-
-    showLoading('正在获取歌曲标签信息...');
-
-    // Enrich seeds with tags
-    for(let i=0; i<this.seedPool.length; i++){
-      try {
-        const info = await LastFM.getTrackInfo(this.seedPool[i].name, this.seedPool[i].artist);
-        if(info && info.toptags){
-          this.seedPool[i].tags = (info.toptags.tag || []).slice(0,5).map(t=>t.name);
-          this.seedPool[i].url = info.url;
-          this.seedPool[i].listeners = info.listeners;
-          // Use album art if available
-          if(info.album && info.album.image){
-            const large = info.album.image.find(i=>i.size==='large'||i.size==='extralarge');
-            if(large && large['#text']) this.seedPool[i].image = large['#text'];
-          }
-        }
-      } catch(e){ console.warn('Tag fetch failed for', this.seedPool[i].name, e); }
-    }
-    hideLoading();
 
     this.showStep('recommend');
     await this.runCycle();
@@ -550,82 +411,104 @@ const App = {
     $('pool-info').textContent = `种子池: ${this.seedPool.length} 首歌曲`;
     this.updateStepBar(1);
 
-    showLoading(`第 ${this.currentCycle} 轮推荐中... (搜索相似歌曲)`);
+    showLoading(`第 ${this.currentCycle} 轮推荐中...`);
 
     try {
-      // Use last 5 tracks from pool as seeds
       const seeds = this.seedPool.slice(-5);
       const recs = await this._getRecommendations(seeds);
       this.currentRecs = recs;
       this.renderRecommendations(recs);
     } catch(e){
       console.error('[App] Recommendation error:', e);
-      toast('推荐请求失败: ' + e.message);
+      toast('推荐失败: ' + e.message);
     }
-
     hideLoading();
   },
 
   async _getRecommendations(seeds){
-    // For each seed, get similar tracks
-    const allSimilar = [];
+    // Track all related artists and their connection count
+    const relatedMap = new Map(); // artistId -> {artist info, connections}
+    const seedArtistIds = new Set();
+
     for(const seed of seeds){
+      seedArtistIds.add(seed.artistId);
       try {
-        const similar = await LastFM.getSimilarTracks(seed.name, seed.artist, 10);
-        allSimilar.push(...similar.map(s => ({
-          name: s.name,
-          artist: s.artist,
-          match: parseFloat(s.match) || 0,
-          image: this._getImage(s),
-          mbid: s.mbid || '',
-          sourceSeed: seed.name
-        })));
-      } catch(e){ console.warn('getSimilar failed for', seed.name, e); }
+        const related = await Deezer.getRelatedArtists(seed.artistId);
+        for(const ra of (related || [])){
+          const id = ra.id;
+          if(seedArtistIds.has(id)) continue; // skip own seed artists
+          if(relatedMap.has(id)){
+            relatedMap.get(id).connections.push(seed.artist);
+          } else {
+            relatedMap.set(id, {
+              id, name: ra.name,
+              picture: ra.picture_medium || ra.picture_small || '',
+              connections: [seed.artist]
+            });
+          }
+        }
+      } catch(e){ console.warn('Related artists failed for', seed.artist, e); }
     }
 
-    // Deduplicate and aggregate scores
-    const seen = new Map();
-    for(const t of allSimilar){
-      const key = (t.name + '|||' + t.artist).toLowerCase();
-      if(seen.has(key)){
-        const existing = seen.get(key);
-        existing.match = Math.max(existing.match, t.match);
-        existing.appearances++;
-        if(!existing.image && t.image) existing.image = t.image;
-      } else {
-        seen.set(key, {...t, appearances: 1});
-      }
+    // Get top tracks from top related artists (by connections)
+    const sortedArtists = [...relatedMap.values()]
+      .sort((a,b) => b.connections.length - a.connections.length);
+
+    // Fetch top tracks from top 10 related artists
+    const candidates = [];
+    const topArtists = sortedArtists.slice(0, 10);
+    for(const artist of topArtists){
+      try {
+        const topTracks = await Deezer.getArtistTopTracks(artist.id, 5);
+        for(const t of (topTracks || [])){
+          candidates.push({
+            id: t.id,
+            title: t.title,
+            artist: t.artist.name,
+            artistId: t.artist.id,
+            cover: t.album.cover_medium || t.album.cover_small || '',
+            preview: t.preview || '',
+            album: t.album.title,
+            viaArtist: artist.name,
+            connections: artist.connections.length
+          });
+        }
+      } catch(e){ console.warn('Top tracks failed for', artist.name, e); }
     }
 
-    // Remove tracks already in seed pool
-    const poolKeys = new Set(this.seedPool.map(s => (s.name + '|||' + s.artist).toLowerCase()));
-    let candidates = [...seen.values()].filter(t => !poolKeys.has((t.name+'|||'+t.artist).toLowerCase()));
+    // Deduplicate
+    const seen = new Set();
+    const unique = [];
+    for(const t of candidates){
+      const key = t.id;
+      if(seen.has(key)) continue;
+      seen.add(key);
+      unique.push(t);
+    }
 
-    // Score: match * (1 + 0.2 * appearances) — boost tracks similar to multiple seeds
-    candidates.forEach(t => { t.finalScore = t.match * (1 + 0.2 * (t.appearances - 1)); });
+    // Score: boost tracks where the related artist has multiple connections
+    unique.forEach(t => {
+      t.score = Math.min(100, Math.round(t.connections * 100 / seeds.length));
+    });
+    unique.sort((a,b) => b.score - a.score);
 
-    // Sort by final score descending
-    candidates.sort((a,b) => b.finalScore - a.finalScore);
-
-    // Return top 3
-    return candidates.slice(0, 3);
+    return unique.slice(0, 3);
   },
 
   renderRecommendations(tracks){
     const container = $('rec-cards');
-    container.innerHTML = tracks.map((t, i) => {
-      const scoreClass = t.finalScore >= 70 ? 'score-high' : '';
+    container.innerHTML = tracks.map((t,i) => {
+      const hi = t.score >= 70 ? 'score-hi' : '';
       return `
         <div class="rec-card" id="rec-card-${i}">
           <div class="badge">#${i+1}</div>
-          ${t.image ? `<img src="${t.image}" alt="" onerror="this.style.display='none'">` : '<div style="width:100px;height:100px;border-radius:6px;background:var(--surface2);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text2)">♪</div>'}
-          <div class="track-name">${this._esc(t.name)}</div>
+          ${t.cover ? `<img src="${t.cover}" alt="" onerror="this.style.display='none'">` : '<div style="width:100px;height:100px;border-radius:6px;background:var(--surface2);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text2)">♪</div>'}
+          <div class="track-name">${this._esc(t.title)}</div>
           <div class="track-artist">${this._esc(t.artist)}</div>
-          <div class="match-score ${scoreClass}">匹配度: ${t.finalScore.toFixed(0)}%</div>
-          ${t.appearances > 1 ? `<div style="font-size:.7rem;color:var(--accent);margin-bottom:8px">被 ${t.appearances} 首种子歌曲共同推荐</div>` : ''}
-          <button class="btn btn-primary" onclick="App.pickSong(${i})" style="width:100%;margin-top:4px">
-            选这首 ♪
-          </button>
+          <div class="score ${hi}">匹配度: ${t.score}%</div>
+          <div class="reason">关联: ${this._esc(t.viaArtist)} × ${t.connections}</div>
+          ${t.preview ? `<audio controls src="${t.preview}"><source src="${t.preview}" type="audio/mpeg"></audio>` : '<div style="color:var(--text2);font-size:.7rem">无预览</div>'}
+          <button class="btn btn-primary" onclick="App.pickSong(${i})" style="width:100%;margin-top:6px">选这首 ♪</button>
         </div>`;
     }).join('');
   },
@@ -634,66 +517,32 @@ const App = {
     const picked = this.currentRecs[idx];
     if(!picked) return;
 
-    showLoading('获取歌曲详情...');
+    const pickedTrack = {
+      id: picked.id, title: picked.title, artist: picked.artist,
+      cover: picked.cover, preview: picked.preview,
+      score: picked.score, viaArtist: picked.viaArtist, connections: picked.connections
+    };
 
-    try {
-      // Get tags for the picked song
-      let tags = [];
-      let image = picked.image || '';
-      try {
-        const info = await LastFM.getTrackInfo(picked.name, picked.artist);
-        if(info && info.toptags){
-          tags = (info.toptags.tag || []).slice(0,5).map(t=>t.name);
-        }
-        if(!image && info.album && info.album.image){
-          const large = info.album.image.find(i=>i.size==='large'||i.size==='extralarge');
-          if(large && large['#text']) image = large['#text'];
-        }
-      } catch(e){ console.warn('Tag fetch failed for picked', e); }
+    this.cycleResults.push({
+      cycle: this.currentCycle,
+      recs: this.currentRecs.map(t => ({
+        title: t.title, artist: t.artist, score: t.score, cover: t.cover
+      })),
+      picked: pickedTrack
+    });
 
-      const pickedTrack = {
-        name: picked.name,
-        artist: picked.artist,
-        tags: tags,
-        matchScore: picked.finalScore,
-        image: image,
-        appearances: picked.appearances
-      };
+    this.seedPool.push({
+      id: picked.id, title: picked.title, artist: picked.artist,
+      artistId: picked.artistId, cover: picked.cover, preview: picked.preview
+    });
 
-      // Record cycle result
-      this.cycleResults.push({
-        cycle: this.currentCycle,
-        recs: this.currentRecs.map(t => ({
-          name: t.name,
-          artist: t.artist,
-          matchScore: t.finalScore,
-          image: t.image
-        })),
-        picked: pickedTrack
-      });
+    document.querySelectorAll('.rec-card').forEach(c => c.classList.remove('picked'));
+    const card = document.getElementById('rec-card-'+idx);
+    if(card) card.classList.add('picked');
+    document.querySelectorAll('.rec-card button').forEach(b => b.disabled = true);
 
-      // Add to seed pool
-      this.seedPool.push({
-        name: picked.name,
-        artist: picked.artist,
-        tags: tags,
-        image: image
-      });
-
-      // Visual feedback
-      document.querySelectorAll('.rec-card').forEach(c => c.classList.remove('picked'));
-      const card = document.getElementById('rec-card-'+idx);
-      if(card) card.classList.add('picked');
-      document.querySelectorAll('.rec-card button').forEach(b => b.disabled = true);
-
-      toast(`已选择: ${pickedTrack.name}`);
-
-      setTimeout(() => this.runCycle(), 1000);
-    } catch(e){
-      console.error(e);
-      toast('获取歌曲信息失败');
-    }
-    hideLoading();
+    toast(`已选择: ${pickedTrack.title}`);
+    setTimeout(() => this.runCycle(), 1000);
   },
 
   // ------ Final ------
@@ -703,60 +552,54 @@ const App = {
 
     const tbody = $('final-table');
     let html = `<thead><tr>
-      <th>轮次</th><th>本轮3首推荐</th><th>你选择的歌曲</th><th>歌曲风格标签</th>
+      <th>轮次</th><th>该轮3首推荐</th><th>你选择的歌曲</th><th>推荐来源</th>
     </tr></thead><tbody>`;
 
     this.cycleResults.forEach(r => {
-      const tagsStr = r.picked.tags.length > 0
-        ? r.picked.tags.map(t => `<span class="tag" style="font-size:.72rem">${this._esc(t)}</span>`).join(' ')
-        : '—';
-
       html += `<tr>
         <td><strong>第 ${r.cycle} 轮</strong></td>
-        <td>
-          <div class="rec-list">
-            ${r.recs.map(rec => `
-              <span>${this._esc(rec.name)} — ${this._esc(rec.artist)} <small style="color:var(--text2)">(${rec.matchScore.toFixed(0)}%)</small></span>
-            `).join('')}
-          </div>
-        </td>
+        <td><div class="rec-list">
+          ${r.recs.map(rec => `
+            <span>${this._esc(rec.title)} — ${this._esc(rec.artist)} <small style="color:var(--text2)">(${rec.score}%)</small></span>
+          `).join('')}
+        </div></td>
         <td>
           <div class="track-cell">
-            ${r.picked.image ? `<img src="${r.picked.image}" alt="">` : ''}
+            ${r.picked.cover ? `<img src="${r.picked.cover}" alt="">` : ''}
             <div>
-              <strong>${this._esc(r.picked.name)}</strong><br>
+              <strong>${this._esc(r.picked.title)}</strong><br>
               <small style="color:var(--text2)">${this._esc(r.picked.artist)}</small>
-              ${r.picked.appearances > 1 ? `<br><small style="color:var(--accent)">${r.picked.appearances} 首种子共同推荐</small>` : ''}
             </div>
           </div>
         </td>
-        <td>${tagsStr}</td>
+        <td style="font-size:.8rem">
+          匹配度: <strong>${r.picked.score}%</strong><br>
+          通过 <span style="color:var(--accent)">${this._esc(r.picked.viaArtist)}</span>
+        </td>
       </tr>`;
     });
 
     html += `</tbody>
     <tfoot><tr style="background:var(--surface)">
       <td colspan="4" style="text-align:center;color:var(--text2);font-size:.8rem">
-        初始种子歌曲: ${this.originalSeeds.map(s => this._esc(s.name+' - '+s.artist)).join(' | ')}
+        初始种子: ${this.originalSeeds.map(s=>this._esc(s.title+' - '+s.artist)).join(' | ')}
       </td>
     </tr></tfoot>`;
 
     tbody.innerHTML = html;
   },
 
-  showStep(stepName){
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    const map = {search:'step-search', recommend:'step-recommend', final:'step-final'};
-    const el = $(map[stepName]);
+  showStep(name){
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    const map = {search:'step-search',recommend:'step-recommend',final:'step-final'};
+    const el = $(map[name]);
     if(el) el.classList.add('active');
   },
 
   reset(){
     this.searchSelects = Array(5).fill(null);
-    this.seedPool = [];
-    this.originalSeeds = [];
-    this.currentRecs = [];
-    this.cycleResults = [];
+    this.seedPool = []; this.originalSeeds = [];
+    this.currentRecs = []; this.cycleResults = [];
     this.currentCycle = 0;
     this._searchCache = Array(5).fill(null);
     this.showStep('search');
@@ -765,42 +608,28 @@ const App = {
   },
 
   exportCSV(){
-    let csv = '轮次,推荐1,推荐2,推荐3,选中歌曲,选中歌手,匹配度,标签\n';
+    let csv = '轮次,推荐1,推荐2,推荐3,选中歌曲,选中歌手,匹配度,来源艺人\n';
     this.cycleResults.forEach(r => {
       csv += [
         r.cycle,
-        `"${r.recs[0]?.name||''}"`, `"${r.recs[1]?.name||''}"`, `"${r.recs[2]?.name||''}"`,
-        `"${r.picked.name}"`, `"${r.picked.artist}"`,
-        r.picked.matchScore?.toFixed(0)+'%'||'',
-        `"${r.picked.tags.join(', ')}"`,
+        `"${r.recs[0]?.title||''}"`,`"${r.recs[1]?.title||''}"`,`"${r.recs[2]?.title||''}"`,
+        `"${r.picked.title}"`,`"${r.picked.artist}"`,
+        r.picked.score+'%',
+        `"${r.picked.viaArtist}"`
       ].join(',') + '\n';
     });
-    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'music-recommendations.csv';
+    a.download = 'recommendations.csv';
     a.click();
     toast('CSV 已下载');
   },
 
-  _getImage(track){
-    if(!track) return '';
-    if(track.image && Array.isArray(track.image)){
-      const sizes = ['extralarge','large','medium'];
-      for(const s of sizes){
-        const img = track.image.find(i => i.size === s);
-        if(img && img['#text']) return img['#text'];
-      }
-    }
-    return '';
-  },
-
-  _esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')},
-  _escAttr(s){return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;')}
+  _esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 };
 
-// ===================== INIT =====================
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', ()=>App.init());
 </script>
 </body>
 </html>
