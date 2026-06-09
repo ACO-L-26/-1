@@ -222,25 +222,18 @@ function toast(msg){const t=document.createElement('div');t.className='toast';t.
 
 // ===================== DEEZER API =====================
 const Deezer = {
-  // Deezer API is free, no API key required, CORS enabled
-  _base: 'https://api.deezer.com',
+  // Calls go through local server proxy (/api/deezer/...) to bypass network blocks
+  _base: '/api/deezer',
 
   async _get(path){
-    // Deezer API sometimes returns CORS issues; use corsproxy as fallback
     const url = this._base + path;
-    console.log('[Deezer] GET', path);
-    try {
-      const res = await fetch(url);
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    } catch(e){
-      // Fallback: try with a CORS proxy
-      console.warn('[Deezer] Direct call failed, trying proxy...');
-      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-      const res = await fetch(proxyUrl);
-      if(!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-      return JSON.parse(await res.text());
+    console.log('[Deezer] GET', url);
+    const res = await fetch(url);
+    if(!res.ok){
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text.substring(0,200)}`);
     }
+    return res.json();
   },
 
   async searchTracks(query, limit=5){
