@@ -547,7 +547,7 @@ const App = {
     }
 
     // Also search for popular songs in the top genre
-    const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0];
+    const topGenre = Object.entries(genreWeight).sort((a,b)=>b[1]-a[1])[0];
     if(topGenre && candidates.length < 5){
       try {
         const genreResults = await iTunes.searchTracks(topGenre[0]+' song', 5);
