@@ -3,411 +3,513 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Music Pet</title>
+<title>Music Pet — 桌宠音乐伴侣</title>
 <style>
 :root {
-  --bg: #1a1a2e;
-  --surface: #16213e;
-  --text: #e0e0e8;
-  --text2: #8080a0;
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #22223a;
+  --text: #e8e8f0;
+  --text2: #8888a8;
   --accent: #ff6b9d;
   --accent2: #c44dff;
+  --green: #44dd88;
+  --red: #ff5566;
+  --radius: 12px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
+
 body{
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
   color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-  user-select: none;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Draggable area */
-#drag-bar{
-  -webkit-app-region: drag;
-  height: 24px;
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-}
-
-/* Main container */
-.pet-container{
-  position: relative;
-  width: 100%;
-  height: 100%;
+/* ========= Header ========= */
+header{
+  background: var(--surface);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  padding: 12px 28px;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 12px;
+}
+header .logo{font-size: 1.2rem; font-weight: 700; letter-spacing: -.3px}
+header .logo span{color: var(--accent)}
+header .status-dot{
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+header .status-text{font-size:.78rem;color:var(--text2);margin-left:auto}
+
+/* ========= Main Layout ========= */
+main{
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 28px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
-/* Pixel Character */
-.pixel-char{
-  margin-top: 30px;
+/* ========= Left: Pet Character Panel ========= */
+.pet-panel{
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  text-align: center;
+  position: sticky;
+  top: 24px;
+}
+
+/* Pixel Character - Larger for PC */
+.char-stage{
   position: relative;
-  width: 80px;
-  height: 80px;
-  cursor: pointer;
-  transition: transform .3s;
-  image-rendering: pixelated;
+  width: 160px;
+  height: 180px;
+  margin: 0 auto 16px;
 }
-.pixel-char:hover{transform: scale(1.15)}
-.pixel-char:active{transform: scale(.95)}
-
-/* Pixel art character using CSS box-shadow */
 .char-body{
   position: absolute;
-  width: 48px; height: 48px;
+  width: 72px; height: 72px;
   background: #ff6b9d;
-  border-radius: 2px;
-  top: 8px; left: 16px;
+  border-radius: 3px;
+  top: 40px; left: 44px;
   box-shadow:
-    /* ear-like top decorations */
-    -8px -12px 0 -4px #ff6b9d,
-    8px -12px 0 -4px #ff6b9d,
+    /* ears */
+    -10px -18px 0 -6px #ff6b9d,
+    10px -18px 0 -6px #ff6b9d,
     /* eyes */
-    -12px 4px 0 2px #1a1a2e,
-    12px 4px 0 2px #1a1a2e,
+    -16px 8px 0 4px #1a1a2e,
+    16px 8px 0 4px #1a1a2e,
     /* eye shine */
-    -14px 2px 0 4px #fff,
-    10px 2px 0 4px #fff,
+    -18px 4px 0 6px #fff,
+    14px 4px 0 6px #fff,
     /* mouth */
-    0px 14px 0 2px #1a1a2e,
+    0px 20px 0 4px #1a1a2e,
     /* blush */
-    -20px 10px 0 2px #ff9dbc,
-    20px 10px 0 2px #ff9dbc;
+    -26px 14px 0 6px #ff9dbc,
+    26px 14px 0 6px #ff9dbc,
+    /* body */
+    0px 44px 0 12px #ff6b9d;
+  transition: transform .3s;
+  cursor: pointer;
 }
+.char-body:hover{transform: scale(1.1)}
+.char-body:active{transform: scale(.95)}
 
-/* Headphones (when gaming) */
+/* Headphones on gaming */
 .headphones{
   display: none;
   position: absolute;
-  width: 64px;
-  height: 20px;
-  top: -4px; left: 8px;
+  width: 96px; height: 24px;
+  top: 36px; left: 32px;
 }
 .char-body.gaming .headphones{display:block}
 .headphones::before, .headphones::after{
-  content: '';
-  position: absolute;
-  width: 14px; height: 14px;
-  background: #333;
-  border-radius: 50%;
-  border: 2px solid #555;
-  top: 0;
+  content:'';position:absolute;
+  width:20px;height:20px;
+  background:#333;border-radius:50%;
+  border:3px solid #555;
+  top:0;
 }
-.headphones::before{left: 0}
-.headphones::after{right: 0}
+.headphones::before{left:0}
+.headphones::after{right:0}
 .headphones .band{
-  position: absolute;
-  width: 36px; height: 4px;
-  background: #555;
-  top: 5px; left: 14px;
-  border-radius: 2px;
+  position:absolute;
+  width:56px;height:6px;
+  background:#555;
+  top:7px;left:20px;
+  border-radius:3px;
 }
 
-/* Music note swirl (when listening) */
-.notes{
-  display: none;
-  position: absolute;
-  top: -20px; left: 0;
-  font-size: 16px;
-  animation: floatUp 1.5s ease-out infinite;
-}
+/* Floating notes when listening */
+.notes{display:none;position:absolute;font-size:22px;top:16px}
 .char-body.listening .notes{display:block}
-.notes:nth-child(2){left: 20px; animation-delay: .5s}
-.notes:nth-child(3){left: 40px; animation-delay: 1s}
+.notes:nth-child(1){left:12px;animation:floatUp 1.5s ease-out infinite}
+.notes:nth-child(2){left:44px;animation:floatUp 1.5s ease-out .5s infinite}
+.notes:nth-child(3){left:76px;animation:floatUp 1.5s ease-out 1s infinite}
 @keyframes floatUp{
   0%{opacity:1;transform:translateY(0) scale(1)}
-  100%{opacity:0;transform:translateY(-30px) scale(.5)}
+  100%{opacity:0;transform:translateY(-36px) scale(.4)}
 }
 
-/* Bob animation */
-@keyframes bob{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-4px)}
-}
-.char-body.idle{animation: bob 2s ease-in-out infinite}
-.char-body.gaming{animation: bob .5s ease-in-out infinite}
-.char-body.listening{animation: bob 1.2s ease-in-out infinite}
+/* Bob */
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.char-body.idle{animation:bob 2s ease-in-out infinite}
+.char-body.gaming{animation:bob .5s ease-in-out infinite}
+.char-body.listening{animation:bob 1.2s ease-in-out infinite}
 
-/* Chat Bubble */
-.bubble{
-  position: absolute;
-  top: 100px;
-  left: -80px;
-  width: 240px;
-  background: var(--surface);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px;
-  padding: 14px;
-  font-size: .8rem;
-  line-height: 1.4;
-  box-shadow: 0 4px 20px rgba(0,0,0,.5);
-  z-index: 50;
-  cursor: pointer;
-  transition: all .3s;
-}
-.bubble::after{
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 100px;
-  width: 0; height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid var(--surface);
-}
-.bubble-top-msg{
-  color: var(--accent);
+/* Status badge */
+.status-badge{
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: .82rem;
   font-weight: 600;
-  margin-bottom: 4px;
-  font-size: .85rem;
+  margin-bottom: 12px;
 }
-.bubble .context{color: var(--text2); font-size: .75rem; margin-bottom: 6px}
+.status-badge.game{background:rgba(255,85,102,.15);color:var(--red)}
+.status-badge.music{background:rgba(68,221,136,.15);color:var(--green)}
+.status-badge.both{background:rgba(196,77,255,.15);color:var(--accent2)}
+.status-badge.idle{background:var(--surface2);color:var(--text2)}
 
-/* Recommendation mini cards */
-.rec-mini{
+.pet-name{font-size:1rem;font-weight:700;margin-bottom:4px}
+.pet-hint{font-size:.76rem;color:var(--text2)}
+
+/* ========= Right: Content Panel ========= */
+.content-panel{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Activity card */
+.card{
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.card-title{
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text2);
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.activity-row{
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.activity-item{
+  flex: 1;
+  min-width: 140px;
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  background: rgba(255,255,255,.03);
-  transition: background .2s;
 }
-.rec-mini:hover{background: rgba(255,255,255,.08)}
-.rec-mini img{width: 40px; height: 40px; border-radius: 4px; object-fit: cover}
-.rec-mini .info{flex:1; min-width:0}
-.rec-mini .name{font-size: .76rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.rec-mini .artist{font-size: .68rem; color: var(--text2)}
-.rec-mini audio{width:100%;height:24px;margin-top:4px}
-.rec-mini audio::-webkit-media-controls-panel{background:#2a2a40}
-
-/* Collapsed state */
-.pet-container.collapsed .bubble{display:none}
-.pet-container.collapsed .pixel-char{margin-top: 30px}
-
-/* Error/empty state */
-.empty-state{text-align:center;color:var(--text2);padding:12px;font-size:.8rem}
-
-/* Activity badge on character */
-.activity-badge{
-  position: absolute;
-  bottom: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,.7);
-  color: var(--accent2);
-  font-size: .55rem;
-  padding: 2px 8px;
-  border-radius: 8px;
-  white-space: nowrap;
-  font-weight: 600;
+.activity-item .icon{
+  font-size: 1.6rem;
+  width: 36px;
+  text-align: center;
 }
+.activity-item .label{font-size:.72rem;color:var(--text2);margin-bottom:2px}
+.activity-item .value{font-size:.92rem;font-weight:600}
+.activity-item.active{border-left: 3px solid var(--accent)}
 
-/* Streaming indicator */
-.indicator{
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  position: absolute;
-  top: 28px; right: -2px;
-  animation: pulse 1.5s ease-in-out infinite;
+/* Music cards */
+.rec-cards{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
-.indicator.game{background: #ff4444}
-.indicator.music{background: #44ff44}
-.indicator.idle{background: #888}
-@keyframes pulse{
-  0%,100%{opacity:1;box-shadow:0 0 4px currentColor}
-  50%{opacity:.4;box-shadow:0 0 8px currentColor}
+.rec-card{
+  background: var(--surface2);
+  border: 1px solid rgba(255,255,255,.04);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: all .2s;
 }
+.rec-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-1px)}
+.rec-card img{
+  width: 64px; height: 64px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.rec-card .track-info{flex:1;min-width:0}
+.rec-card .t-name{font-weight:700;font-size:.88rem;margin-bottom:2px}
+.rec-card .t-artist{font-size:.78rem;color:var(--text2);margin-bottom:4px}
+.rec-card .t-genre{
+  font-size:.68rem;color:var(--accent2);
+  background:rgba(196,77,255,.1);
+  display:inline-block;padding:2px 8px;border-radius:8px;
+  margin-bottom:6px;
+}
+.rec-card audio{width:100%;height:28px;margin-top:4px}
+.rec-card audio::-webkit-media-controls-panel{background:var(--surface)}
 
-/* Loading spinner */
+/* Empty */
+.empty{text-align:center;padding:32px;color:var(--text2)}
+.empty .big-icon{font-size:3rem;margin-bottom:12px}
 .spin{
-  display: inline-block;
-  width: 14px; height: 14px;
-  border: 2px solid rgba(255,255,255,.1);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin .6s linear infinite;
+  display:inline-block;width:18px;height:18px;
+  border:2px solid rgba(255,255,255,.1);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  margin-right:8px;
+  vertical-align:middle;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Refresh button */
+.refresh-bar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.btn{
+  padding: 8px 20px; border: none;
+  border-radius: 20px;
+  font-size: .82rem; font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#ff85b0;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text)}
+.btn-outline:hover{border-color:var(--accent)}
+
+.next-poll{font-size:.72rem;color:var(--text2)}
 </style>
 </head>
 <body>
 
-<div id="drag-bar"></div>
+<header>
+  <div class="logo"><span>♪</span> Music Pet</div>
+  <div class="status-dot" id="header-dot"></div>
+  <span style="font-size:.8rem" id="header-status">启动中...</span>
+  <span class="status-text" id="header-time"></span>
+</header>
 
-<div class="pet-container" id="pet-container">
-  <div class="pixel-char" id="pixel-char" onclick="Pet.onClick()" title="Music Pet">
-    <div class="headphones">
-      <div class="band"></div>
+<main>
+  <!-- ===== Left: Pet Character ===== -->
+  <aside class="pet-panel">
+    <div class="char-stage">
+      <div class="char-body idle" id="char-body">
+        <div class="headphones"><div class="band"></div></div>
+        <div class="notes">♪</div><div class="notes">♫</div><div class="notes">♪</div>
+      </div>
     </div>
-    <div class="char-body idle" id="char-body">
-      <div class="notes">♪</div>
-      <div class="notes">♫</div>
-      <div class="notes">♪</div>
-    </div>
-    <div class="indicator idle" id="indicator"></div>
-    <div class="activity-badge" id="activity-badge">空闲中</div>
-  </div>
+    <div class="status-badge idle" id="status-badge">空闲中</div>
+    <div class="pet-name" id="pet-name">音符精灵</div>
+    <div class="pet-hint" id="pet-hint">点击角色刷新推荐</div>
+  </aside>
 
-  <div class="bubble" id="bubble" onclick="Pet.onBubbleClick()">
-    <div class="bubble-top-msg" id="bubble-title">Music Pet</div>
-    <div class="context" id="bubble-context"></div>
-    <div id="bubble-recs"></div>
+  <!-- ===== Right: Content ===== -->
+  <div class="content-panel">
+    <!-- Activity detection -->
+    <div class="card">
+      <div class="card-title">当前活动</div>
+      <div class="activity-row" id="activity-row">
+        <div class="activity-item">
+          <div class="icon">🎮</div>
+          <div>
+            <div class="label">游戏</div>
+            <div class="value" id="act-game">未检测到</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="icon">🎵</div>
+          <div>
+            <div class="label">音乐</div>
+            <div class="value" id="act-music">未检测到</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="icon">🕐</div>
+          <div>
+            <div class="label">时段</div>
+            <div class="value" id="act-time">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="card">
+      <div class="refresh-bar">
+        <div class="card-title" style="margin-bottom:0" id="rec-title">为你推荐</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="next-poll" id="next-poll"></span>
+          <button class="btn btn-outline" onclick="Pet.refresh()">刷新推荐</button>
+        </div>
+      </div>
+      <p style="color:var(--text2);font-size:.8rem;margin-bottom:14px" id="rec-context"></p>
+      <div class="rec-cards" id="rec-cards">
+        <div class="empty">
+          <div class="big-icon">🎧</div>
+          <div><span class="spin"></span>检测活动中...</div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</main>
 
 <script>
 // ===================== PET ENGINE =====================
 const Pet = {
-  state: 'loading', // idle, game, music, both
   activity: null,
   recs: [],
-  pollingInterval: null,
-  collapsed: false,
+  timer: null,
+  countdown: 30,
 
   init(){
     this.poll();
-    this.pollingInterval = setInterval(() => this.poll(), 30000);
+    this.timer = setInterval(() => this.poll(), 30000);
+    this._tickCountdown();
+    setInterval(() => this._tickCountdown(), 1000);
+    $('char-body').onclick = () => this.refresh();
+    $('header-time').textContent = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    setInterval(()=>{
+      $('header-time').textContent = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    },30000);
+  },
+
+  _tickCountdown(){
+    this.countdown--;
+    if(this.countdown <= 0) this.countdown = 30;
+    $('next-poll').textContent = `${this.countdown}秒后自动刷新`;
   },
 
   async poll(){
-    this.setState('loading');
+    this.countdown = 30;
+    this._setHeaderState('loading','检测中...', '#888');
     try {
       const res = await fetch('/api/activity');
       const data = await res.json();
       this.activity = data.activity;
-      this.updateCharacter(data.activity);
-      this.updateBubble(data.message);
-      await this.loadRecs(data.genres);
+      this._updateCharacter(data.activity);
+      this._updateActivityCard(data.activity);
+      $('rec-context').textContent = data.message || '';
+      await this._loadRecs(data.genres);
+      this._setHeaderState('ok','运行中', 'var(--green)');
     } catch(e){
-      console.error('Activity poll failed:', e);
-      this.setState('idle');
-      $('bubble-context').textContent = '连接中...';
+      console.error(e);
+      this._setHeaderState('error','服务器离线', 'var(--red)');
+      $('rec-context').textContent = '无法连接服务器...';
     }
   },
 
-  async loadRecs(genres){
-    if(!genres || genres.length === 0) genres = ['Lo-fi', 'Chill'];
-    const allTracks = [];
+  async refresh(){
+    if(!this.activity) return this.poll();
+    const genres = this._getGenresForActivity(this.activity);
+    $('rec-cards').innerHTML = '<div class="empty"><span class="spin"></span>刷新中...</div>';
+    await this._loadRecs(genres);
+  },
 
-    // Search for 2-3 genres
-    for(const genre of genres.slice(0, 3)){
+  async _loadRecs(genres){
+    if(!genres || genres.length === 0) genres = ['Lo-fi','Chill'];
+    const all = [];
+    for(const genre of genres.slice(0,4)){
       try {
-        const res = await fetch(`/api/itunes/search?term=${encodeURIComponent(genre)}&entity=song&limit=5&country=cn`);
+        const res = await fetch(`/api/itunes/search?term=${encodeURIComponent(genre)}&entity=song&limit=6&country=cn`);
         const data = await res.json();
         if(data.results){
           for(const t of data.results){
-            if(!allTracks.find(x=>x.trackId===t.trackId)){
-              allTracks.push(t);
-            }
+            if(!all.find(x=>x.trackId===t.trackId)) all.push(t);
           }
         }
       } catch(e){}
     }
-
-    this.recs = allTracks.slice(0, 3);
-    this.renderRecs();
+    this.recs = all.slice(0, 4);
+    this._renderRecs();
   },
 
-  updateCharacter(activity){
-    const body = $('char-body');
-    const indicator = $('indicator');
-    const badge = $('activity-badge');
-
-    body.classList.remove('idle','gaming','listening');
-
-    if(activity.game && activity.music){
-      body.classList.add('gaming');
-      indicator.className = 'indicator game';
-      badge.textContent = '游戏 + 听歌';
-      this.setState('both');
-    } else if(activity.game){
-      body.classList.add('gaming');
-      indicator.className = 'indicator game';
-      badge.textContent = activity.game.name || '游戏中';
-      this.setState('game');
-    } else if(activity.music){
-      body.classList.add('listening');
-      indicator.className = 'indicator music';
-      badge.textContent = '听歌中';
-      this.setState('music');
-    } else {
-      body.classList.add('idle');
-      indicator.className = 'indicator idle';
-      badge.textContent = '空闲中';
-      this.setState('idle');
-    }
-  },
-
-  updateBubble(message){
-    $('bubble-title').textContent = '♪ Music Pet';
-    $('bubble-context').textContent = message || '点击我获取音乐推荐~';
-  },
-
-  renderRecs(){
-    const container = $('bubble-recs');
+  _renderRecs(){
+    const container = $('rec-cards');
     if(this.recs.length === 0){
-      container.innerHTML = '<div class="empty-state"><span class="spin"></span> 搜索中...</div>';
+      container.innerHTML = '<div class="empty"><div class="big-icon">🔍</div><div>暂无推荐</div></div>';
       return;
     }
     container.innerHTML = this.recs.map(t => {
-      const img = t.artworkUrl100 || '';
+      const img = (t.artworkUrl100||'').replace('100x100','200x200');
       const name = t.trackName || t.trackCensoredName || '';
       const artist = t.artistName || '';
+      const genre = t.primaryGenreName || '';
       const preview = t.previewUrl || '';
       return `
-        <div class="rec-mini">
-          ${img ? `<img src="${img}" alt="" onerror="this.style.display='none'">` : ''}
-          <div class="info">
-            <div class="name">${esc(name)}</div>
-            <div class="artist">${esc(artist)}</div>
-            ${preview ? `<audio controls src="${preview}"><source src="${preview}" type="audio/mpeg"></audio>` : ''}
+        <div class="rec-card">
+          ${img?`<img src="${img}" alt="" onerror="this.style.display='none'">`:'<div style="width:64px;height:64px;border-radius:6px;background:var(--surface);flex-shrink:0"></div>'}
+          <div class="track-info">
+            <div class="t-name">${esc(name)}</div>
+            <div class="t-artist">${esc(artist)}</div>
+            ${genre?`<span class="t-genre">${esc(genre)}</span>`:''}
+            ${preview?`<audio controls src="${preview}"><source src="${preview}" type="audio/mpeg"></audio>`:''}
           </div>
         </div>`;
     }).join('');
   },
 
-  setState(s){ this.state = s; },
+  _updateCharacter(activity){
+    const body = $('char-body');
+    const badge = $('status-badge');
+    const name = $('pet-name');
+    body.classList.remove('idle','gaming','listening');
 
-  onClick(){
-    // Click pet → refresh recommendations
-    if(this.activity){
-      const genres = getGenresForActivity(this.activity);
-      this.loadRecs(genres);
+    if(activity.game && activity.music){
+      body.classList.add('gaming');
+      badge.className = 'status-badge both';
+      badge.textContent = '游戏 + 听歌';
+      name.textContent = '战斗音符精灵';
+    } else if(activity.game){
+      body.classList.add('gaming');
+      badge.className = 'status-badge game';
+      badge.textContent = activity.game.name || '游戏中';
+      name.textContent = '战斗音符精灵';
+    } else if(activity.music){
+      body.classList.add('listening');
+      badge.className = 'status-badge music';
+      badge.textContent = '听歌中';
+      name.textContent = '摇摆音符精灵';
+    } else {
+      body.classList.add('idle');
+      badge.className = 'status-badge idle';
+      badge.textContent = '空闲中';
+      name.textContent = '音符精灵';
     }
   },
 
-  onBubbleClick(e){
-    // Bubble click → refresh
-    if(e.target.tagName === 'AUDIO' || e.target.closest('audio')) return;
-    this.onClick();
+  _updateActivityCard(activity){
+    $('act-game').textContent = activity.game ? activity.game.name : '未检测到';
+    $('act-music').textContent = activity.music || '未检测到';
+    $('act-time').textContent = activity.timeOfDay || '--';
+
+    // Highlight active items
+    const items = document.querySelectorAll('.activity-item');
+    items[0].classList.toggle('active', !!activity.game);
+    items[1].classList.toggle('active', !!activity.music);
+  },
+
+  _setHeaderState(state, text, color){
+    $('header-status').textContent = text;
+    $('header-dot').style.background = color;
+  },
+
+  _getGenresForActivity(activity){
+    const g = [];
+    if(activity.game && activity.game.style) g.push(...activity.game.style.split(' '));
+    const h = new Date().getHours();
+    if(h<6||h>=22){g.push('Lo-fi','Ambient')}
+    else if(h<10){g.push('Acoustic','Classical')}
+    else{g.push('Electronic','Pop')}
+    return g;
   }
 };
 
-function getGenresForActivity(activity){
-  const g = [];
-  if(activity.game && activity.game.style){
-    g.push(...activity.game.style.split(' '));
-  }
-  const h = new Date().getHours();
-  if(h < 6 || h >= 22) g.push('Lo-fi','Ambient');
-  else if(h < 10) g.push('Acoustic','Classical');
-  else g.push('Electronic','Pop');
-  return g;
-}
-
 function $(id){return document.getElementById(id)}
-function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-// Start
-document.addEventListener('DOMContentLoaded', () => Pet.init());
+document.addEventListener('DOMContentLoaded',()=>Pet.init());
 </script>
 </body>
 </html>
