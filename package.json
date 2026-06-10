@@ -7,7 +7,6 @@
     "start": "electron .",
     "server": "node server.js"
   },
-  "dependencies": {
-    "electron": "^33.0.0"
-  }
+  "dependencies": {},
+  "comment": "No external dependencies needed. Server runs on Node.js built-in modules. Desktop pet uses Chrome app mode."
 }
