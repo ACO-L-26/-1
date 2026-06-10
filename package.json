@@ -1,0 +1,13 @@
+{
+  "name": "music-pet",
+  "version": "1.0.0",
+  "description": "Desktop Pet Music Companion - detects your activity and recommends music",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js"
+  },
+  "dependencies": {
+    "electron": "^33.0.0"
+  }
+}
