@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Music Pet</title>
+<style>
+body{
+  margin:0;padding:0;
+  background:#0f0f1a;
+  font-family:'Microsoft YaHei','Segoe UI',sans-serif;
+  color:#e0e0e8;
+  overflow:hidden;
+  -webkit-user-select:none;
+  cursor:default;
+}
+
+/* header bar */
+#bar{
+  height:26px;
+  background:#1a1a2e;
+  display:-ms-flexbox;display:flex;
+  -ms-flex-align:center;align-items:center;
+  -ms-flex-pack:center;justify-content:center;
+  font-size:10px;color:#8888a8;font-weight:bold;
+}
+
+/* character */
+#stage{
+  position:relative;
+  width:100%;
+  height:130px;
+  display:-ms-flexbox;display:flex;
+  -ms-flex-direction:column;flex-direction:column;
+  -ms-flex-align:center;align-items:center;
+  padding-top:8px;
+}
+
+#face-wrap{position:relative;width:60px;height:68px;margin-top:8px;cursor:pointer}
+
+/* face */
+#face{
+  width:52px;height:52px;
+  background:#ff6b9d;
+  border-radius:4px;
+  position:absolute;
+  top:8px;left:4px;
+}
+
+/* ears */
+.ear{
+  position:absolute;
+  width:12px;height:12px;
+  background:#ff6b9d;
+  border-radius:3px;
+  top:0;
+}
+.ear.l{left:2px}.ear.r{right:2px}
+
+/* eyes */
+.eye{
+  position:absolute;
+  width:7px;height:8px;
+  background:#1a1a2e;
+  border-radius:50%;
+  top:16px;
+}
+.eye.l{left:12px}.eye.r{right:12px}
+.eye::after{
+  content:'';
+  position:absolute;
+  width:2px;height:2px;
+  background:#fff;
+  border-radius:50%;
+  top:2px;left:2px;
+}
+
+/* mouth */
+#mouth{
+  position:absolute;
+  width:8px;height:3px;
+  background:#1a1a2e;
+  border-radius:0 0 5px 5px;
+  top:32px;left:22px;
+}
+
+/* blush */
+.blush{
+  position:absolute;
+  width:9px;height:5px;
+  background:#ff9dbc;
+  border-radius:50%;
+  top:23px;
+}
+.blush.l{left:0}.blush.r{right:0}
+
+/* headphones */
+#hp{
+  display:none;
+  position:absolute;
+  top:-2px;left:-10px;
+  width:72px;height:12px;
+}
+#hp.show{display:block}
+.hpc{position:absolute;width:14px;height:15px;background:#333;border-radius:50%;border:2px solid #555;top:0}
+.hpc.l{left:0}.hpc.r{right:0}
+#hp-band{position:absolute;width:44px;height:4px;background:#555;top:5px;left:14px;border-radius:2px}
+
+/* notes */
+.note{
+  display:none;
+  position:absolute;
+  font-size:14px;
+  color:#c44dff;
+}
+.note.show{display:block}
+#n1{top:-10px;left:40px;animation:nf 1.5s infinite}
+#n2{top:-10px;left:56px;animation:nf 1.5s .5s infinite}
+#n3{top:-10px;left:72px;animation:nf 1.5s 1s infinite}
+@keyframes nf{
+  0%{opacity:1;margin-top:0}
+  100%{opacity:0;margin-top:-24px}
+}
+
+/* status badge */
+#badge{
+  margin-top:6px;
+  padding:3px 12px;
+  border-radius:10px;
+  font-size:10px;
+  font-weight:bold;
+  background:#22223a;
+  color:#8888a8;
+  display:inline-block;
+}
+#badge.game{background:rgba(255,85,102,.2);color:#ff5566}
+#badge.music{background:rgba(68,221,136,.2);color:#44dd88}
+#badge.both{background:rgba(196,77,255,.2);color:#c44dff}
+
+/* pet name */
+#pname{font-size:12px;font-weight:bold;color:#e0e0e8;margin-top:4px}
+
+/* divider */
+#divider{
+  height:1px;
+  background:rgba(255,255,255,.06);
+  margin:0 10px;
+}
+
+/* recommendations */
+#rec-section{padding:8px 10px}
+#rec-title{font-size:10px;color:#8888a8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+#rec-ctx{font-size:10px;color:#ff6b9d;margin-bottom:8px}
+
+.rec{
+  display:-ms-flexbox;display:flex;
+  gap:8px;
+  padding:6px;
+  margin-bottom:5px;
+  border-radius:6px;
+  background:rgba(255,255,255,.02);
+  cursor:pointer;
+}
+.rec:hover{background:rgba(255,255,255,.05)}
+.rec img{width:40px;height:40px;border-radius:3px;background:#1a1a2e;flex-shrink:0}
+.rec .ri{flex:1;min-width:0}
+.rec .rn{font-size:11px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec .ra{font-size:9px;color:#8888a8}
+.rec .rg{font-size:8px;color:#c44dff;background:rgba(196,77,255,.1);padding:1px 6px;border-radius:6px;display:inline-block;margin-top:2px}
+
+/* loading */
+.spin{
+  display:inline-block;width:10px;height:10px;
+  border:2px solid rgba(255,255,255,.1);
+  border-top-color:#ff6b9d;
+  border-radius:50%;
+  animation:sp .6s linear infinite;
+  margin-right:5px;vertical-align:middle;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* refresh */
+#refresh{
+  display:block;width:100%;
+  margin-top:8px;
+  padding:5px 0;
+  background:#1a1a2e;
+  color:#8888a8;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:6px;
+  font-size:10px;
+  cursor:pointer;
+  text-align:center;
+}
+#refresh:hover{color:#ff6b9d;border-color:#ff6b9d}
+
+/* poll timer */
+#poll-info{text-align:center;font-size:9px;color:#555;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div id="bar">♪ Music Pet</div>
+
+<div id="stage">
+  <div id="face-wrap" onclick="Pet.refresh()">
+    <div id="face">
+      <div class="ear l"></div><div class="ear r"></div>
+      <div class="eye l"></div><div class="eye r"></div>
+      <div id="mouth"></div>
+      <div class="blush l"></div><div class="blush r"></div>
+      <div id="hp"><div class="hpc l"></div><div class="hpc r"></div><div id="hp-band"></div></div>
+    </div>
+    <div id="n1" class="note">♪</div>
+    <div id="n2" class="note">♫</div>
+    <div id="n3" class="note">♪</div>
+  </div>
+  <div id="badge">空闲中</div>
+  <div id="pname">音符精灵</div>
+</div>
+
+<div id="divider"></div>
+
+<div id="rec-section">
+  <div id="rec-title">推荐音乐</div>
+  <div id="rec-ctx">检测中...</div>
+  <div id="recs">
+    <div class="rec"><span class="spin"></span>连接中...</div>
+  </div>
+  <div id="refresh" onclick="Pet.refresh()">刷新推荐</div>
+  <div id="poll-info"></div>
+</div>
+
+<script>
+var Pet = {
+  activity: null,
+  recs: [],
+  timer: null,
+  count: 30,
+
+  init: function(){
+    this.poll();
+    this.timer = setInterval(function(){ Pet.poll(); }, 30000);
+    this._tick();
+    setInterval(function(){ Pet._tick(); }, 1000);
+  },
+
+  _tick: function(){
+    this.count--;
+    if(this.count <= 0) this.count = 30;
+    var el = document.getElementById('poll-info');
+    if(el) el.innerText = this.count + '秒后自动刷新';
+  },
+
+  poll: function(){
+    this.count = 30;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'http://127.0.0.1:8080/api/activity', true);
+    var self = this;
+    xhr.onreadystatechange = function(){
+      if(xhr.readyState != 4) return;
+      if(xhr.status == 200){
+        var data = JSON.parse(xhr.responseText);
+        self.activity = data.activity;
+        self._updateChar(data.activity);
+        self._loadRecs(data.genres, data.message);
+      }
+    };
+    xhr.send();
+  },
+
+  refresh: function(){
+    if(!this.activity) return this.poll();
+    this._loadRecs(this._getGenres(), '手动刷新...');
+  },
+
+  _loadRecs: function(genres, msg){
+    if(!genres || genres.length == 0) genres = ['Lo-fi'];
+    document.getElementById('rec-ctx').innerText = msg || '';
+    document.getElementById('recs').innerHTML = '<div class="rec"><span class="spin"></span>搜索中...</div>';
+
+    var all = [];
+    var done = 0;
+    var total = Math.min(genres.length, 3);
+    var self = this;
+
+    for(var i=0; i<total; i++){
+      (function(g){
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'http://127.0.0.1:8080/api/itunes/search?term='+encodeURIComponent(g)+'&entity=song&limit=4&country=cn', true);
+        xhr.onreadystatechange = function(){
+          if(xhr.readyState != 4) return;
+          done++;
+          if(xhr.status == 200){
+            var data = JSON.parse(xhr.responseText);
+            if(data.results){
+              for(var j=0; j<data.results.length; j++){
+                var dup = false;
+                for(var k=0; k<all.length; k++){ if(all[k].trackId == data.results[j].trackId){ dup=true; break; } }
+                if(!dup) all.push(data.results[j]);
+              }
+            }
+          }
+          if(done >= total){ self.recs = all.slice(0, 4); self._render(); }
+        };
+        xhr.send();
+      })(genres[i]);
+    }
+  },
+
+  _render: function(){
+    var html = '';
+    for(var i=0; i<this.recs.length; i++){
+      var t = this.recs[i];
+      var img = (t.artworkUrl100 || '').replace('100x100','200x200');
+      var name = t.trackName || t.trackCensoredName || '';
+      var artist = t.artistName || '';
+      var genre = t.primaryGenreName || '';
+      html += '<div class="rec">';
+      if(img) html += '<img src="'+img+'" onerror="this.style.display=\'none\'">';
+      html += '<div class="ri"><div class="rn">'+esc(name)+'</div><div class="ra">'+esc(artist)+'</div>';
+      if(genre) html += '<span class="rg">'+esc(genre)+'</span>';
+      html += '</div></div>';
+    }
+    if(this.recs.length == 0) html = '<div class="rec">暂无推荐</div>';
+    document.getElementById('recs').innerHTML = html;
+  },
+
+  _updateChar: function(a){
+    var hp = document.getElementById('hp');
+    var n1=document.getElementById('n1'),n2=document.getElementById('n2'),n3=document.getElementById('n3');
+    var badge = document.getElementById('badge');
+    var name = document.getElementById('pname');
+
+    hp.className = '';
+    n1.className='note';n2.className='note';n3.className='note';
+    badge.className = '';
+
+    if(a.game && a.music){
+      hp.className = 'show';
+      badge.className = 'both';
+      badge.innerText = '游戏+听歌';
+      name.innerText = '战斗音符';
+    } else if(a.game){
+      hp.className = 'show';
+      badge.className = 'game';
+      badge.innerText = a.game.name || '游戏中';
+      name.innerText = '战斗音符';
+    } else if(a.music){
+      n1.className='note show';n2.className='note show';n3.className='note show';
+      badge.className = 'music';
+      badge.innerText = '听歌中';
+      name.innerText = '摇摆音符';
+    } else {
+      badge.innerText = '空闲中';
+      name.innerText = '音符精灵';
+    }
+  },
+
+  _getGenres: function(){
+    var g = [];
+    if(this.activity.game && this.activity.game.style) g = this.activity.game.style.split(' ');
+    var h = new Date().getHours();
+    if(h<6||h>=22){g.push('Lo-fi','Ambient')}else if(h<10){g.push('Acoustic','Classical')}else{g.push('Electronic','Pop')}
+    return g;
+  }
+};
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+window.onload = function(){ Pet.init(); };
+</script>
+</body>
+</html>

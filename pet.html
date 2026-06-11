@@ -280,6 +280,32 @@ main{
 .btn-outline:hover{border-color:var(--accent)}
 
 .next-poll{font-size:.72rem;color:var(--text2)}
+
+/* Compact for small desktop pet window */
+@media(max-width:500px){
+  main{display:block;padding:10px}
+  .pet-panel{position:static;display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:10px;text-align:left;flex-direction:row}
+  .char-stage{width:60px;height:60px;margin:0;flex-shrink:0}
+  .char-body{width:36px;height:36px;top:12px;left:12px;box-shadow:-5px -8px 0 -3px #ff6b9d,5px -8px 0 -3px #ff6b9d,-8px 4px 0 2px #1a1a2e,8px 4px 0 2px #1a1a2e,-9px 2px 0 3px #fff,7px 2px 0 3px #fff,0px 10px 0 2px #1a1a2e,-12px 7px 0 3px #ff9dbc,12px 7px 0 3px #ff9dbc,0px 20px 0 6px #ff6b9d}
+  .headphones{width:50px;height:12px;top:8px;left:5px}
+  .headphones::before,.headphones::after{width:10px;height:10px;border-width:2px}
+  .headphones .band{width:30px;height:3px;top:4px;left:10px}
+  .notes{font-size:11px;top:-4px}
+  .notes:nth-child(1){left:4px}.notes:nth-child(2){left:22px}.notes:nth-child(3){left:40px}
+  @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-20px)}}
+  .pet-name{font-size:.8rem}.pet-hint,.status-badge{font-size:.68rem}
+  .rec-cards{grid-template-columns:1fr}
+  .card{padding:12px 14px}
+  .card-title{font-size:.7rem}
+  .rec-card img{width:48px;height:48px}
+  .rec-card .t-name{font-size:.8rem}
+  .activity-item{padding:8px 12px}
+  .activity-item .icon{font-size:1.2rem;width:24px}
+  .activity-item .value{font-size:.8rem}
+  header{padding:8px 14px}
+  header .logo{font-size:1rem}
+  .refresh-bar{flex-direction:column;align-items:flex-start;gap:6px}
+}
 </style>
 </head>
 <body>
