@@ -16,9 +16,9 @@ public class MusicPet : Form
     const uint SWP_NOSIZE = 0x0001;
 
     // Sizing
-    const int PET_W = 100, PET_H = 120;
+    const int PET_W = 110, PET_H = 130;
     const int CHAT_W = 210, CHAT_H = 180;
-    const int FULL_W = 220, FULL_H = 310;
+    const int FULL_W = 230, FULL_H = 320;
 
     private bool dragging = false, wasDragged = false;
     private Point dragStart;
@@ -37,15 +37,18 @@ public class MusicPet : Form
     private float bobOffset = 0, bobDir = 1;
     private int noteFrame = 0;
 
-    // Colors
-    readonly Brush pinkBrush = new SolidBrush(Color.FromArgb(255, 107, 157));
-    readonly Brush darkBrush = new SolidBrush(Color.FromArgb(26, 26, 46));
-    readonly Brush whiteBrush = new SolidBrush(Color.White);
-    readonly Brush blushBrush = new SolidBrush(Color.FromArgb(255, 157, 188));
+    // Colors - baby seal
+    readonly Brush sealBody = new SolidBrush(Color.FromArgb(180, 200, 220));
+    readonly Brush sealBelly = new SolidBrush(Color.FromArgb(230, 238, 245));
+    readonly Brush sealDark = new SolidBrush(Color.FromArgb(45, 52, 60));
+    readonly Brush sealBlush = new SolidBrush(Color.FromArgb(255, 180, 190));
+    readonly Brush sealNose = new SolidBrush(Color.FromArgb(55, 60, 70));
+    readonly Pen sealOutline = new Pen(Color.FromArgb(150, 170, 190), 1.5f);
     readonly Brush bubbleBrush = new SolidBrush(Color.FromArgb(30, 30, 55));
     readonly Brush dimBrush = new SolidBrush(Color.FromArgb(136, 136, 168));
     readonly Brush accentBrush = new SolidBrush(Color.FromArgb(255, 107, 157));
     readonly Brush optHoverBrush = new SolidBrush(Color.FromArgb(50, 50, 80));
+    readonly Brush whiteBrush = new SolidBrush(Color.White);
 
     public MusicPet()
     {
@@ -126,53 +129,106 @@ public class MusicPet : Form
         cy += (int)bobOffset;
         bool gaming = activity != null && activity.game != null;
         bool listening = activity != null && activity.music != null;
+        bool blinking = !gaming && !listening && noteFrame % 60 > 56;
 
-        // Body
-        g.FillRectangle(pinkBrush, cx - 14, cy + 30, 28, 14);
+        var state = g.Save();
+        g.SmoothingMode = SmoothingMode.HighQuality;
 
-        // Face
-        int fx = cx - 20, fy = cy - 4;
-        g.FillRectangle(pinkBrush, fx, fy, 40, 36);
+        // === BODY (oval) ===
+        int bx = cx - 22, by = cy + 5, bw = 44, bh = 50;
+        g.FillEllipse(sealBody, bx, by, bw, bh);
+        g.DrawEllipse(sealOutline, bx, by, bw, bh);
 
-        // Ears
-        g.FillRectangle(pinkBrush, fx - 8, fy - 2, 10, 10);
-        g.FillRectangle(pinkBrush, fx + 38, fy - 2, 10, 10);
+        // === BELLY (lighter oval) ===
+        g.FillEllipse(sealBelly, cx - 14, cy + 15, 28, 32);
 
-        // Blush
-        g.FillEllipse(blushBrush, fx - 4, fy + 14, 8, 6);
-        g.FillEllipse(blushBrush, fx + 36, fy + 14, 8, 6);
+        // === TAIL (two small fins at bottom) ===
+        g.FillPie(sealBody, cx - 8, cy + 48, 16, 14, 180, 60);
+        g.FillPie(sealBody, cx - 8, cy + 48, 16, 14, 300, 60);
 
-        // Eyes
-        g.FillEllipse(darkBrush, fx + 6, fy + 8, 6, 8);
-        g.FillEllipse(darkBrush, fx + 28, fy + 8, 6, 8);
-        g.FillEllipse(whiteBrush, fx + 8, fy + 10, 2, 2);
-        g.FillEllipse(whiteBrush, fx + 30, fy + 10, 2, 2);
+        // === FLIPPERS (side) ===
+        g.FillEllipse(sealBody, bx - 6, cy + 18, 12, 20);
+        g.FillEllipse(sealBody, bx + bw - 6, cy + 18, 12, 20);
+        g.DrawEllipse(sealOutline, bx - 6, cy + 18, 12, 20);
+        g.DrawEllipse(sealOutline, bx + bw - 6, cy + 18, 12, 20);
 
-        // Mouth
-        if(gaming) g.FillRectangle(darkBrush, fx + 15, fy + 24, 10, 4);
-        else g.FillRectangle(darkBrush, fx + 16, fy + 23, 8, 3);
+        // === HEAD (round top) ===
+        int hx = cx - 18, hy = cy - 12, hw = 36, hh = 34;
+        g.FillEllipse(sealBody, hx, hy, hw, hh);
+        g.DrawEllipse(sealOutline, hx, hy, hw, hh);
 
-        // Headphones
+        // === EYES ===
+        int eyeY = cy - 2;
+        // Left eye
+        g.FillEllipse(sealDark, cx - 12, eyeY, 7, 9);
+        // Right eye
+        g.FillEllipse(sealDark, cx + 5, eyeY, 7, 9);
+
+        if(!blinking) {
+            // Eye shine
+            g.FillEllipse(whiteBrush, cx - 10, eyeY + 1, 2.5f, 2.5f);
+            g.FillEllipse(whiteBrush, cx + 7, eyeY + 1, 2.5f, 2.5f);
+        } else {
+            // Blink: draw body-colored line over eyes
+            var blinkPen = new Pen(Color.FromArgb(180, 200, 220), 2);
+            g.DrawLine(blinkPen, cx - 15, eyeY + 4, cx - 5, eyeY + 4);
+            g.DrawLine(blinkPen, cx + 2, eyeY + 4, cx + 12, eyeY + 4);
+        }
+
+        // === NOSE ===
+        g.FillEllipse(sealNose, cx - 4, cy + 6, 8, 5);
+
+        // === WHISKERS ===
+        var wPen = new Pen(Color.FromArgb(120, 140, 155), 0.8f);
+        // Left whiskers
+        g.DrawLine(wPen, cx - 6, cy + 8, cx - 20, cy + 4);
+        g.DrawLine(wPen, cx - 6, cy + 9, cx - 20, cy + 9);
+        g.DrawLine(wPen, cx - 6, cy + 10, cx - 20, cy + 14);
+        // Right whiskers
+        g.DrawLine(wPen, cx + 6, cy + 8, cx + 20, cy + 4);
+        g.DrawLine(wPen, cx + 6, cy + 9, cx + 20, cy + 9);
+        g.DrawLine(wPen, cx + 6, cy + 10, cx + 20, cy + 14);
+
+        // === MOUTH ===
+        var mPen = new Pen(Color.FromArgb(80, 90, 100), 1);
         if(gaming) {
-            var hpPen = new Pen(Color.FromArgb(85, 85, 85), 2);
-            g.DrawEllipse(hpPen, fx - 8, fy - 6, 14, 14);
-            g.DrawEllipse(hpPen, fx + 34, fy - 6, 14, 14);
-            g.DrawLine(hpPen, fx - 2, fy, fx + 40, fy);
+            // Determined mouth
+            g.DrawLine(mPen, cx - 3, cy + 14, cx + 3, cy + 14);
+        } else {
+            // Happy curve
+            g.DrawArc(mPen, cx - 4, cy + 11, 8, 6, 0, -180);
         }
 
-        // Notes
+        // === BLUSH ===
+        g.FillEllipse(sealBlush, cx - 18, eyeY + 6, 7, 5);
+        g.FillEllipse(sealBlush, cx + 11, eyeY + 6, 7, 5);
+
+        // === HEADPHONES (gaming) ===
+        if(gaming) {
+            var hpPen = new Pen(Color.FromArgb(60, 65, 75), 2.5f);
+            var hpBrush = new SolidBrush(Color.FromArgb(50, 55, 65));
+            // Ear cups
+            g.FillEllipse(hpBrush, cx - 22, cy - 8, 14, 16);
+            g.FillEllipse(hpBrush, cx + 8, cy - 8, 14, 16);
+            g.DrawEllipse(hpPen, cx - 22, cy - 8, 14, 16);
+            g.DrawEllipse(hpPen, cx + 8, cy - 8, 14, 16);
+            // Band
+            g.DrawArc(hpPen, cx - 17, cy - 10, 34, 20, 200, 140);
+        }
+
+        // === MUSIC NOTES (listening) ===
         if(listening) {
-            var nf = new Font("Arial", 12, FontStyle.Bold);
-            var nb = new SolidBrush(Color.FromArgb(196, 77, 255));
-            g.DrawString("♪", nf, nb, fx + 16, fy - 15 - (noteFrame*3%30));
-            g.DrawString("♫", nf, nb, fx + 30, fy - 25 - ((noteFrame*3+15)%30));
+            var nf = new Font("Arial", 11, FontStyle.Bold);
+            var nb = new SolidBrush(Color.FromArgb(120, 140, 220));
+            g.DrawString("♪", nf, nb, cx + 14, cy - 14 - (noteFrame*3%24));
+            g.DrawString("♫", nf, nb, cx + 26, cy - 22 - ((noteFrame*3+12)%24));
+            // Sway eyes (half-close)
+            var lashPen = new Pen(Color.FromArgb(180, 200, 220), 1.5f);
+            g.DrawLine(lashPen, cx - 15, eyeY, cx - 5, eyeY);
+            g.DrawLine(lashPen, cx + 2, eyeY, cx + 12, eyeY);
         }
 
-        // Blink
-        if(!gaming && !listening && noteFrame % 60 > 56) {
-            g.FillRectangle(pinkBrush, fx + 6, fy + 10, 6, 2);
-            g.FillRectangle(pinkBrush, fx + 28, fy + 10, 6, 2);
-        }
+        g.Restore(state);
     }
 
     private void DrawBubble(Graphics g)
