@@ -291,28 +291,28 @@ public class MusicPet : Form
         SwitchToPetMode();
     }
 
+    // Character Y offset from form top in each mode
+    const int CHAR_Y_PET = PET_H - 75;    // character center Y in pet mode
+    const int CHAR_Y_FULL = FULL_H - 75;   // character center Y in chat mode
+
     private void SwitchToChatMode()
     {
-        this.SuspendLayout();
-        int bottom = this.Bottom;
+        // Save character screen position (using current pet-mode offset)
+        int charY = this.Top + CHAR_Y_PET;
+        int charX = this.Left + PET_W / 2;
         this.MinimumSize = new Size(0,0);
         this.Size = new Size(FULL_W, FULL_H);
-        // Keep character at exact same screen position by anchoring bottom edge
-        this.Location = new Point(this.Left - (FULL_W - PET_W) / 2, bottom - FULL_H);
-        this.ResumeLayout();
+        this.Location = new Point(charX - FULL_W / 2, charY - CHAR_Y_FULL);
         this.Invalidate();
     }
 
     private void SwitchToPetMode()
     {
-        this.SuspendLayout();
-        int bottom = this.Bottom;
+        // Save character screen position (using current chat-mode offset)
+        int charY = this.Top + CHAR_Y_FULL;
+        int charX = this.Left + FULL_W / 2;
         this.Size = new Size(PET_W, PET_H);
-        this.Location = new Point(
-            this.Left + (FULL_W - PET_W) / 2,
-            bottom - PET_H
-        );
-        this.ResumeLayout();
+        this.Location = new Point(charX - PET_W / 2, charY - CHAR_Y_PET);
         this.Invalidate();
     }
 
