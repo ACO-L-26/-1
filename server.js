@@ -130,6 +130,7 @@ function detectActivity(callback){
       }
       if(!result.music && MUSIC_APPS[name]){
         result.music = MUSIC_APPS[name];
+        result.musicKey = name;
       }
       if(result.game && result.music) break;
     }

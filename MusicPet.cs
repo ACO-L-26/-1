@@ -28,7 +28,7 @@ public class MusicPet : Form
 
     // State
     private ActivityData activity;
-    private string[] recs;
+    private List<TrackInfo> recs;
     private int chatPhase = 0; // 0=none, 1=dialogue, 2=recommendations
     private string[] chatOptions;
     private Rectangle[] optionRects;
@@ -245,7 +245,7 @@ public class MusicPet : Form
             bh = 60 + chatOptions.Length * 32;
             text = dialogueMsg;
         } else {
-            bh = 40 + (recs != null ? recs.Length * 22 : 20);
+            bh = 40 + (recs != null ? recs.Count * 22 : 20);
             text = recTitle;
         }
 
@@ -283,24 +283,41 @@ public class MusicPet : Form
                 g.DrawString(chatOptions[i], textFont, hover ? whiteBrush : dimBrush, bx + 16, oy + 4);
             }
         } else if(chatPhase == 2) {
-            // Draw recommendation items
+            // Draw recommendation items (clickable → opens music app)
             if(recs != null) {
+                trackRects = new Rectangle[recs.Count];
                 var smallFont = new Font("Microsoft YaHei", 8, FontStyle.Regular);
-                for(int i=0; i<recs.Length; i++) {
-                    g.DrawString(recs[i], smallFont, whiteBrush, bx + 12, by + 38 + i * 22);
+                var linkFont = new Font("Microsoft YaHei", 8, FontStyle.Underline);
+                for(int i=0; i<recs.Count; i++) {
+                    int ty = by + 38 + i * 22;
+                    var tr = new Rectangle(bx + 12, ty, bw - 24, 20);
+                    trackRects[i] = tr;
+                    bool hover = (i == hoveredTrack);
+                    var f = hover ? linkFont : smallFont;
+                    var br = hover ? accentBrush : whiteBrush;
+                    g.DrawString(recs[i].ToString(), f, br, bx + 12, ty);
                 }
             }
         }
     }
 
     private int hoveredOption = -1;
+    private int hoveredTrack = -1;
+    private Rectangle[] trackRects;
 
     private void CheckOptionHover(Point mouse)
     {
         hoveredOption = -1;
-        if(optionRects == null) return;
-        for(int i=0; i<optionRects.Length; i++) {
-            if(optionRects[i].Contains(mouse)) { hoveredOption = i; return; }
+        hoveredTrack = -1;
+        if(optionRects != null) {
+            for(int i=0; i<optionRects.Length; i++) {
+                if(optionRects[i].Contains(mouse)) { hoveredOption = i; return; }
+            }
+        }
+        if(trackRects != null) {
+            for(int i=0; i<trackRects.Length; i++) {
+                if(trackRects[i].Contains(mouse)) { hoveredTrack = i; return; }
+            }
         }
     }
 
@@ -317,10 +334,18 @@ public class MusicPet : Form
                     return;
                 }
             }
-            // Click anywhere else (blank area, character) = dismiss
             HideChat();
         } else if(chatPhase == 2) {
-            // Click anywhere on recommendations = dismiss
+            // Check if a track was clicked → open in music app
+            if(trackRects != null && recs != null) {
+                for(int i=0; i<trackRects.Length; i++) {
+                    if(trackRects[i].Contains(e.Location)) {
+                        OpenInMusicApp(recs[i]);
+                        return;
+                    }
+                }
+            }
+            // Click elsewhere = dismiss
             HideChat();
         }
     }
@@ -348,7 +373,9 @@ public class MusicPet : Form
         chatPhase = 0;
         chatOptions = null;
         optionRects = null;
+        trackRects = null;
         hoveredOption = -1;
+        hoveredTrack = -1;
         SwitchToPetMode();
     }
 
@@ -436,18 +463,42 @@ public class MusicPet : Form
         else genres = GetGenres();
 
         try {
-            var all = new List<string>();
+            var all = new List<TrackInfo>();
             foreach(var g in genres) {
                 using(var wc = new WebClient()) {
                     wc.Encoding = Encoding.UTF8;
                     var json = wc.DownloadString("http://127.0.0.1:8080/api/itunes/search?term="
                         + Uri.EscapeDataString(g) + "&entity=song&limit=3&country=cn");
-                    foreach(var t in ParseTracks(json))
-                        if(!all.Contains(t)) all.Add(t);
+                    foreach(var t in ParseTracks(json)) {
+                        bool dup = false;
+                        foreach(var e in all) { if(e.name == t.name && e.artist == t.artist) { dup=true; break; } }
+                        if(!dup) all.Add(t);
+                    }
                 }
             }
-            recs = all.GetRange(0, Math.Min(4, all.Count)).ToArray();
-        } catch { recs = new[]{"服务器离线"}; }
+            recs = all.GetRange(0, Math.Min(4, all.Count));
+        } catch { recs = new List<TrackInfo> { new TrackInfo { name = "服务器离线", artist = "" } }; }
+    }
+
+    private void OpenInMusicApp(TrackInfo track)
+    {
+        if(string.IsNullOrEmpty(track.name) || track.name.Contains("离线")) return;
+        var query = Uri.EscapeDataString(track.name + " " + track.artist);
+        string url;
+        var key = activity != null ? activity.musicKey : null;
+
+        if(key != null && key.Contains("cloudmusic"))
+            url = "https://music.163.com/#/search/m/?s=" + query;
+        else if(key != null && key.Contains("qqmusic"))
+            url = "https://y.qq.com/portal/search.html#page=1&searchid=1&t=song&w=" + query;
+        else if(key != null && key.Contains("kugou"))
+            url = "https://www.kugou.com/yy/html/search.html#searchType=song&searchKeyWord=" + query;
+        else if(key != null && key.Contains("spotify"))
+            url = "https://open.spotify.com/search/" + query;
+        else
+            url = "https://music.163.com/#/search/m/?s=" + query;
+
+        try { System.Diagnostics.Process.Start(url); } catch {}
     }
 
     private string[] GetGenres()
@@ -489,6 +540,7 @@ public class MusicPet : Form
         try {
             r.game = ExtractGame(json);
             r.music = ExtractStr(json, "\"music\":\"");
+            r.musicKey = ExtractStr(json, "\"musicKey\":\"");
             r.timeOfDay = ExtractStr(json, "\"timeOfDay\":\"");
         } catch {}
         return r;
@@ -515,18 +567,18 @@ public class MusicPet : Form
         return json.Substring(si, ei - si);
     }
 
-    private string[] ParseTracks(string json)
+    private List<TrackInfo> ParseTracks(string json)
     {
-        var list = new List<string>();
+        var list = new List<TrackInfo>();
         int pos = 0;
         while(true) {
             var name = ExtractBetween(json, "\"trackName\":\"", "\"", ref pos);
             var artist = ExtractBetween(json, "\"artistName\":\"", "\"", ref pos);
             if(name == null) break;
-            if(!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(artist))
-                list.Add(name + " - " + artist);
+            if(!string.IsNullOrEmpty(name))
+                list.Add(new TrackInfo { name = name, artist = artist ?? "" });
         }
-        return list.ToArray();
+        return list;
     }
 
     private string ExtractBetween(string json, string key, string end, ref int pos)
@@ -552,7 +604,15 @@ public class ActivityData
 {
     public GameData game;
     public string music;
+    public string musicKey;
     public string timeOfDay;
+}
+
+public class TrackInfo
+{
+    public string name;
+    public string artist;
+    public override string ToString() { return string.IsNullOrEmpty(artist) ? name : name + " - " + artist; }
 }
 
 public class GameData
