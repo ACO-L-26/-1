@@ -113,11 +113,9 @@ public class MusicPet : Form
 
         int cy;
         if(chatPhase == 0) {
-            // Just the character, centered
-            cy = PET_H / 2 - 13;
+            cy = PET_H - 75; // character bottom-relative
         } else {
-            // Character at bottom of expanded form
-            cy = FULL_H - 80;
+            cy = FULL_H - 75; // same screen position
             DrawBubble(g);
         }
         DrawCharacter(g, PET_W/2, cy);
@@ -249,16 +247,21 @@ public class MusicPet : Form
     protected override void OnMouseUp(MouseEventArgs e)
     {
         base.OnMouseUp(e);
-        if(wasDragged || chatPhase != 1 || optionRects == null) return;
-        for(int i=0; i<optionRects.Length; i++) {
-            if(optionRects[i].Contains(e.Location)) {
-                string choice = chatOptions[i];
-                ShowRecs(choice);
-                return;
+        if(wasDragged) return;
+
+        if(chatPhase == 1 && optionRects != null) {
+            for(int i=0; i<optionRects.Length; i++) {
+                if(optionRects[i].Contains(e.Location)) {
+                    ShowRecs(chatOptions[i]);
+                    return;
+                }
             }
+            // Click anywhere else (blank area, character) = dismiss
+            HideChat();
+        } else if(chatPhase == 2) {
+            // Click anywhere on recommendations = dismiss
+            HideChat();
         }
-        // Click outside options = dismiss
-        if(e.Y < optionRects[0].Top - 20) HideChat();
     }
 
     // =========== CHAT LOGIC ===========
@@ -291,11 +294,11 @@ public class MusicPet : Form
     private void SwitchToChatMode()
     {
         this.SuspendLayout();
-        // Keep same bottom position, expand upward
-        int newTop = this.Top - (FULL_H - PET_H);
+        int bottom = this.Bottom;
         this.MinimumSize = new Size(0,0);
         this.Size = new Size(FULL_W, FULL_H);
-        this.Location = new Point(this.Left - (FULL_W - PET_W) / 2, newTop);
+        // Keep character at exact same screen position by anchoring bottom edge
+        this.Location = new Point(this.Left - (FULL_W - PET_W) / 2, bottom - FULL_H);
         this.ResumeLayout();
         this.Invalidate();
     }
@@ -303,11 +306,11 @@ public class MusicPet : Form
     private void SwitchToPetMode()
     {
         this.SuspendLayout();
-        int oldBottom = this.Bottom;
+        int bottom = this.Bottom;
         this.Size = new Size(PET_W, PET_H);
         this.Location = new Point(
             this.Left + (FULL_W - PET_W) / 2,
-            this.Top + (FULL_H - PET_H)
+            bottom - PET_H
         );
         this.ResumeLayout();
         this.Invalidate();
