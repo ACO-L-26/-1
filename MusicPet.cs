@@ -25,6 +25,8 @@ public class MusicPet : Form
     private ActivityData activity;
     private string[] recs;
     private ToolTip tooltip;
+    private Form popup = null;
+    private bool wasDragged = false;
 
     // Animation state
     private float bobOffset = 0;
@@ -60,11 +62,11 @@ public class MusicPet : Form
         var screen = Screen.PrimaryScreen.WorkingArea;
         this.Location = new Point(screen.Width - CW - 10, screen.Height - CH - 10);
 
-        // Mouse events for drag
-        this.MouseDown += (s, e) => { dragging = true; dragStart = e.Location; };
-        this.MouseMove += (s, e) => { if(dragging) { this.Left += e.X - dragStart.X; this.Top += e.Y - dragStart.Y; } };
+        // Mouse events: drag to move, click (without drag) to show popup
+        this.MouseDown += (s, e) => { dragging = true; wasDragged = false; dragStart = e.Location; };
+        this.MouseMove += (s, e) => { if(dragging && (Math.Abs(e.X-dragStart.X) > 3 || Math.Abs(e.Y-dragStart.Y) > 3)) { this.Left += e.X - dragStart.X; this.Top += e.Y - dragStart.Y; wasDragged = true; } };
         this.MouseUp += (s, e) => { dragging = false; };
-        this.Click += (s, e) => ShowRecommendations();
+        this.Click += (s, e) => { if(!wasDragged) ShowRecommendations(); };
 
         // Paint the character
         this.Paint += OnPaint;
@@ -166,44 +168,59 @@ public class MusicPet : Form
         }
     }
 
-    // Click handler - show a mini popup with recommendations
+    // Click handler - show popup. One at a time, click to dismiss.
     private void ShowRecommendations()
     {
-        var popup = new Form();
-        popup.Size = new Size(250, 220);
+        // Close existing popup
+        if(popup != null && !popup.IsDisposed) { popup.Close(); popup = null; return; }
+
+        popup = new Form();
+        popup.Size = new Size(240, 180);
         popup.FormBorderStyle = FormBorderStyle.None;
         popup.TopMost = true;
         popup.ShowInTaskbar = false;
         popup.StartPosition = FormStartPosition.Manual;
-        popup.Location = new Point(this.Left - 80, this.Top - 230);
+        popup.Location = new Point(this.Left - 75, this.Top - 190);
         popup.BackColor = Color.FromArgb(26, 26, 46);
         popup.Paint += (s, e) => {
-            var g = e.Graphics;
-            g.DrawRectangle(new Pen(Color.FromArgb(255, 107, 157), 2), 1, 1, popup.Width-3, popup.Height-3);
+            e.Graphics.DrawRectangle(new Pen(Color.FromArgb(255, 107, 157), 1), 0, 0, popup.Width-1, popup.Height-1);
         };
 
-        // Content
+        // Close button
+        var closeBtn = new Label();
+        closeBtn.Text = "✕";
+        closeBtn.ForeColor = Color.FromArgb(136, 136, 168);
+        closeBtn.Font = new Font("Arial", 10, FontStyle.Bold);
+        closeBtn.Location = new Point(popup.Width - 24, 4);
+        closeBtn.Size = new Size(20, 20);
+        closeBtn.TextAlign = ContentAlignment.MiddleCenter;
+        closeBtn.Cursor = Cursors.Hand;
+        closeBtn.Click += (s2, e2) => { popup.Close(); popup = null; };
+        popup.Controls.Add(closeBtn);
+
+        // Title
         var label = new Label();
         label.Text = activity != null ? GetActivityText() : "♪ Music Pet";
         label.ForeColor = Color.FromArgb(255, 107, 157);
         label.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
         label.Location = new Point(10, 8);
-        label.Size = new Size(230, 20);
+        label.Size = new Size(200, 20);
         popup.Controls.Add(label);
 
+        // Recommendations
         var recLabel = new Label();
         recLabel.Text = recs != null ? string.Join("\n", recs) : "加载中...";
         recLabel.ForeColor = Color.FromArgb(224, 224, 232);
         recLabel.Font = new Font("Microsoft YaHei", 8);
         recLabel.Location = new Point(10, 30);
-        recLabel.Size = new Size(230, 160);
-        recLabel.TextAlign = ContentAlignment.TopLeft;
+        recLabel.Size = new Size(220, 140);
         popup.Controls.Add(recLabel);
 
-        // Close on click
-        popup.Click += (s2, e2) => popup.Close();
-        popup.MouseLeave += (s2, e2) => { var t = new System.Windows.Forms.Timer(); t.Interval=2000; t.Tick+=(s3,e3)=>{popup.Close();t.Stop();};t.Start(); };
+        // Click anywhere to close
+        recLabel.Click += (s2, e2) => { popup.Close(); popup = null; };
+        label.Click += (s2, e2) => { popup.Close(); popup = null; };
 
+        popup.FormClosed += (s2, e2) => { popup = null; };
         popup.Show();
     }
 
