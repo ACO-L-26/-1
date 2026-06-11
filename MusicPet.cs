@@ -498,7 +498,13 @@ public class MusicPet : Form
         else
             url = "https://music.163.com/#/search/m/?s=" + query;
 
-        try { System.Diagnostics.Process.Start(url); } catch {}
+        try {
+            var psi = new System.Diagnostics.ProcessStartInfo {
+                FileName = url,
+                UseShellExecute = true
+            };
+            System.Diagnostics.Process.Start(psi);
+        } catch {}
     }
 
     private string[] GetGenres()
