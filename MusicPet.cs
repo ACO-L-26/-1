@@ -5,119 +5,134 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Text;
-using System.Timers;
-using Microsoft.Win32;
+using System.Collections.Generic;
 
 public class MusicPet : Form
 {
-    // Win32 for always-on-top and click-through prevention
     [DllImport("user32.dll")]
     static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
     const uint SWP_NOMOVE = 0x0002;
     const uint SWP_NOSIZE = 0x0001;
-    const int WS_EX_LAYERED = 0x80000;
-    const int WS_EX_TRANSPARENT = 0x20;
 
-    private bool dragging = false;
+    // Sizing
+    const int PET_W = 100, PET_H = 120;
+    const int CHAT_W = 210, CHAT_H = 180;
+    const int FULL_W = 220, FULL_H = 310;
+
+    private bool dragging = false, wasDragged = false;
     private Point dragStart;
     private System.Timers.Timer pollTimer;
+    private System.Windows.Forms.Timer animTimer;
+    private ToolTip tooltip;
+
+    // State
     private ActivityData activity;
     private string[] recs;
-    private ToolTip tooltip;
-    private Form popup = null;
-    private bool wasDragged = false;
-
-    // Animation state
-    private float bobOffset = 0;
-    private float bobDir = 1;
+    private int chatPhase = 0; // 0=none, 1=dialogue, 2=recommendations
+    private string[] chatOptions;
+    private Rectangle[] optionRects;
+    private string dialogueMsg = "";
+    private string recTitle = "";
+    private float bobOffset = 0, bobDir = 1;
     private int noteFrame = 0;
-    private System.Windows.Forms.Timer animTimer;
 
-    // Character colors
+    // Colors
     readonly Brush pinkBrush = new SolidBrush(Color.FromArgb(255, 107, 157));
     readonly Brush darkBrush = new SolidBrush(Color.FromArgb(26, 26, 46));
     readonly Brush whiteBrush = new SolidBrush(Color.White);
     readonly Brush blushBrush = new SolidBrush(Color.FromArgb(255, 157, 188));
-    readonly Pen pinkPen = new Pen(Color.FromArgb(255, 107, 157), 2);
-
-    // Form size for the character
-    const int CW = 100;
-    const int CH = 120;
+    readonly Brush bubbleBrush = new SolidBrush(Color.FromArgb(30, 30, 55));
+    readonly Brush dimBrush = new SolidBrush(Color.FromArgb(136, 136, 168));
+    readonly Brush accentBrush = new SolidBrush(Color.FromArgb(255, 107, 157));
+    readonly Brush optHoverBrush = new SolidBrush(Color.FromArgb(50, 50, 80));
 
     public MusicPet()
     {
-        // Window setup: tiny, transparent, no borders
-        this.Size = new Size(CW, CH);
+        this.Size = new Size(PET_W, PET_H);
         this.FormBorderStyle = FormBorderStyle.None;
         this.TopMost = true;
         this.ShowInTaskbar = false;
         this.StartPosition = FormStartPosition.Manual;
-        this.BackColor = Color.Fuchsia; // Will be transparent
+        this.BackColor = Color.Fuchsia;
         this.TransparencyKey = Color.Fuchsia;
         this.AllowTransparency = true;
         this.DoubleBuffered = true;
 
-        // Position at bottom-right
         var screen = Screen.PrimaryScreen.WorkingArea;
-        this.Location = new Point(screen.Width - CW - 10, screen.Height - CH - 10);
+        this.Location = new Point(screen.Width - PET_W - 10, screen.Height - PET_H - 10);
 
-        // Mouse events: drag to move, click (without drag) to show popup
-        this.MouseDown += (s, e) => { dragging = true; wasDragged = false; dragStart = e.Location; };
-        this.MouseMove += (s, e) => { if(dragging && (Math.Abs(e.X-dragStart.X) > 3 || Math.Abs(e.Y-dragStart.Y) > 3)) { this.Left += e.X - dragStart.X; this.Top += e.Y - dragStart.Y; wasDragged = true; } };
-        this.MouseUp += (s, e) => { dragging = false; };
-        this.Click += (s, e) => { if(!wasDragged) ShowRecommendations(); };
+        // Mouse
+        this.MouseDown += (s, e) => { dragging=true; wasDragged=false; dragStart=e.Location; };
+        this.MouseMove += (s, e) => {
+            if(dragging && (Math.Abs(e.X-dragStart.X)>3 || Math.Abs(e.Y-dragStart.Y)>3)) {
+                this.Left += e.X-dragStart.X; this.Top += e.Y-dragStart.Y; wasDragged=true;
+            }
+            if(chatPhase > 0) { CheckOptionHover(e.Location); this.Invalidate(); }
+        };
+        this.MouseUp += (s, e) => { dragging=false; };
+        this.Click += (s, e) => {
+            if(wasDragged) return;
+            if(chatPhase == 0) { ShowDialogue(); }
+            else if(chatPhase == 1) { /* handled by option click */ }
+            else { HideChat(); }
+        };
 
-        // Paint the character
-        this.Paint += OnPaint;
-
-        // Animation timer
+        // Animation
         animTimer = new System.Windows.Forms.Timer();
         animTimer.Interval = 50;
         animTimer.Tick += (s, e) => {
             bobOffset += 0.15f * bobDir;
             if(Math.Abs(bobOffset) > 3) bobDir *= -1;
-            noteFrame = (noteFrame + 1) % 60;
+            noteFrame = (noteFrame+1) % 60;
             this.Invalidate();
         };
         animTimer.Start();
 
-        // Tooltip for activity info
+        // Tooltip
         tooltip = new ToolTip();
-        tooltip.SetToolTip(this, "Music Pet - 检测中...");
+        tooltip.SetToolTip(this, "♪ Music Pet");
 
-        // Activity polling
+        // Poll activity
         pollTimer = new System.Timers.Timer(15000);
         pollTimer.Elapsed += (s, e) => PollActivity();
         pollTimer.AutoReset = true;
         pollTimer.Start();
-
-        // Initial poll
         PollActivity();
 
-        // Keep on top
         this.Load += (s, e) => SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        this.Paint += OnPaint;
     }
 
-    // Set IE11 mode for WebClient (not used for drawing, but kept for compatibility)
-    static MusicPet() {
-        try { var k = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION"); k.SetValue("MusicPet.exe", 11001, RegistryValueKind.DWord); k.Close(); } catch {}
-    }
+    // =========== PAINTING ===========
 
     private void OnPaint(object sender, PaintEventArgs e)
     {
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
 
-        int cx = CW / 2;
-        int cy = 30 + (int)bobOffset;
+        int cy;
+        if(chatPhase == 0) {
+            // Just the character, centered
+            cy = PET_H / 2 - 13;
+        } else {
+            // Character at bottom of expanded form
+            cy = FULL_H - 80;
+            DrawBubble(g);
+        }
+        DrawCharacter(g, PET_W/2, cy);
+    }
+
+    private void DrawCharacter(Graphics g, int cx, int cy)
+    {
+        cy += (int)bobOffset;
         bool gaming = activity != null && activity.game != null;
         bool listening = activity != null && activity.music != null;
 
-        // === BODY (shadow/pants) ===
+        // Body
         g.FillRectangle(pinkBrush, cx - 14, cy + 30, 28, 14);
 
-        // === FACE ===
+        // Face
         int fx = cx - 20, fy = cy - 4;
         g.FillRectangle(pinkBrush, fx, fy, 40, 36);
 
@@ -132,7 +147,6 @@ public class MusicPet : Form
         // Eyes
         g.FillEllipse(darkBrush, fx + 6, fy + 8, 6, 8);
         g.FillEllipse(darkBrush, fx + 28, fy + 8, 6, 8);
-        // Eye shine
         g.FillEllipse(whiteBrush, fx + 8, fy + 10, 2, 2);
         g.FillEllipse(whiteBrush, fx + 30, fy + 10, 2, 2);
 
@@ -140,7 +154,7 @@ public class MusicPet : Form
         if(gaming) g.FillRectangle(darkBrush, fx + 15, fy + 24, 10, 4);
         else g.FillRectangle(darkBrush, fx + 16, fy + 23, 8, 3);
 
-        // === HEADPHONES (gaming) ===
+        // Headphones
         if(gaming) {
             var hpPen = new Pen(Color.FromArgb(85, 85, 85), 2);
             g.DrawEllipse(hpPen, fx - 8, fy - 6, 14, 14);
@@ -148,201 +162,244 @@ public class MusicPet : Form
             g.DrawLine(hpPen, fx - 2, fy, fx + 40, fy);
         }
 
-        // === FLOATING NOTES (music) ===
+        // Notes
         if(listening) {
-            var noteFont = new Font("Arial", 12, FontStyle.Bold);
-            var noteBrush = new SolidBrush(Color.FromArgb(196, 77, 255));
-            int n1y = fy - 15 - (noteFrame * 3 % 30);
-            int n2y = fy - 25 - ((noteFrame * 3 + 15) % 30);
-            g.DrawString("♪", noteFont, noteBrush, fx + 16, n1y);
-            g.DrawString("♫", noteFont, noteBrush, fx + 30, n2y);
+            var nf = new Font("Arial", 12, FontStyle.Bold);
+            var nb = new SolidBrush(Color.FromArgb(196, 77, 255));
+            g.DrawString("♪", nf, nb, fx + 16, fy - 15 - (noteFrame*3%30));
+            g.DrawString("♫", nf, nb, fx + 30, fy - 25 - ((noteFrame*3+15)%30));
         }
 
-        // === IDLE ANIMATION (subtle eye blink) ===
-        if(!gaming && !listening) {
-            // Occasional blink (every ~3 seconds)
-            if(noteFrame % 60 > 56) {
-                g.FillRectangle(pinkBrush, fx + 6, fy + 10, 6, 2);
-                g.FillRectangle(pinkBrush, fx + 28, fy + 10, 6, 2);
+        // Blink
+        if(!gaming && !listening && noteFrame % 60 > 56) {
+            g.FillRectangle(pinkBrush, fx + 6, fy + 10, 6, 2);
+            g.FillRectangle(pinkBrush, fx + 28, fy + 10, 6, 2);
+        }
+    }
+
+    private void DrawBubble(Graphics g)
+    {
+        int bx = 10, by = 5, bw = FULL_W - 20, bh;
+        string text;
+
+        if(chatPhase == 1) {
+            bh = 60 + chatOptions.Length * 32;
+            text = dialogueMsg;
+        } else {
+            bh = 40 + (recs != null ? recs.Length * 22 : 20);
+            text = recTitle;
+        }
+
+        // Bubble background - rounded rect
+        var path = RoundedRect(bx, by, bw, bh, 12);
+        g.FillPath(bubbleBrush, path);
+        g.DrawPath(new Pen(Color.FromArgb(80, 80, 120), 1), path);
+
+        // Little triangle pointing down to character
+        var tri = new Point[] {
+            new Point(FULL_W/2 - 8, by + bh),
+            new Point(FULL_W/2 + 8, by + bh),
+            new Point(FULL_W/2, by + bh + 10)
+        };
+        g.FillPolygon(bubbleBrush, tri);
+        g.DrawLine(new Pen(Color.FromArgb(80, 80, 120), 1), tri[0], tri[2]);
+        g.DrawLine(new Pen(Color.FromArgb(80, 80, 120), 1), tri[1], tri[2]);
+
+        // Text
+        var textFont = new Font("Microsoft YaHei", 9, FontStyle.Regular);
+        g.DrawString(text, textFont, accentBrush, bx + 12, by + 10);
+
+        if(chatPhase == 1) {
+            // Draw options
+            optionRects = new Rectangle[chatOptions.Length];
+            for(int i=0; i<chatOptions.Length; i++) {
+                int oy = by + 50 + i * 32;
+                var optRect = new Rectangle(bx + 12, oy, bw - 24, 26);
+                optionRects[i] = optRect;
+
+                // Check if mouse is over this option (set via CheckOptionHover)
+                bool hover = (i == hoveredOption);
+
+                if(hover) g.FillRectangle(optHoverBrush, optRect);
+                g.DrawString(chatOptions[i], textFont, hover ? whiteBrush : dimBrush, bx + 16, oy + 4);
+            }
+        } else if(chatPhase == 2) {
+            // Draw recommendation items
+            if(recs != null) {
+                var smallFont = new Font("Microsoft YaHei", 8, FontStyle.Regular);
+                for(int i=0; i<recs.Length; i++) {
+                    g.DrawString(recs[i], smallFont, whiteBrush, bx + 12, by + 38 + i * 22);
+                }
             }
         }
     }
 
-    // Two-phase interaction: first click = dialogue, then pick option = show recs
-    private void ShowRecommendations()
+    private int hoveredOption = -1;
+
+    private void CheckOptionHover(Point mouse)
     {
-        // Close existing popup
-        if(popup != null && !popup.IsDisposed) { popup.Close(); popup = null; return; }
-
-        popup = new Form();
-        popup.Size = new Size(230, 150);
-        popup.FormBorderStyle = FormBorderStyle.None;
-        popup.TopMost = true;
-        popup.ShowInTaskbar = false;
-        popup.StartPosition = FormStartPosition.Manual;
-        popup.Location = new Point(this.Left - 65, this.Top - 160);
-        popup.BackColor = Color.FromArgb(26, 26, 46);
-        popup.Paint += (s, e) => {
-            e.Graphics.DrawRectangle(new Pen(Color.FromArgb(255, 107, 157), 1), 0, 0, popup.Width-1, popup.Height-1);
-        };
-        popup.FormClosed += (s2, e2) => { popup = null; };
-
-        // Close button
-        var closeBtn = new Label();
-        closeBtn.Text = "✕"; closeBtn.ForeColor = Color.FromArgb(136, 136, 168);
-        closeBtn.Font = new Font("Arial", 10, FontStyle.Bold);
-        closeBtn.Location = new Point(popup.Width - 24, 4);
-        closeBtn.Size = new Size(20, 20); closeBtn.TextAlign = ContentAlignment.MiddleCenter;
-        closeBtn.Cursor = Cursors.Hand;
-        closeBtn.Click += (s2, e2) => { popup.Close(); popup = null; };
-        popup.Controls.Add(closeBtn);
-
-        // Dialogue message
-        var msg = new Label();
-        msg.Text = GetDialogue();
-        msg.ForeColor = Color.FromArgb(224, 224, 232);
-        msg.Font = new Font("Microsoft YaHei", 9, FontStyle.Regular);
-        msg.Location = new Point(12, 12);
-        msg.Size = new Size(200, 40);
-        popup.Controls.Add(msg);
-
-        // Option buttons
-        var options = GetOptions();
-        int y = 58;
-        foreach(var opt in options) {
-            var btn = new Label();
-            btn.Text = "  " + opt;
-            btn.ForeColor = Color.FromArgb(255, 107, 157);
-            btn.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
-            btn.Location = new Point(12, y);
-            btn.Size = new Size(200, 26);
-            btn.Cursor = Cursors.Hand;
-            string chosen = opt;
-            btn.Click += (s2, e2) => {
-                popup.Close(); popup = null;
-                ShowRecPopup(chosen);
-            };
-            btn.MouseEnter += (s2, e2) => { btn.ForeColor = Color.White; };
-            btn.MouseLeave += (s2, e2) => { btn.ForeColor = Color.FromArgb(255, 107, 157); };
-            popup.Controls.Add(btn);
-            y += 28;
+        hoveredOption = -1;
+        if(optionRects == null) return;
+        for(int i=0; i<optionRects.Length; i++) {
+            if(optionRects[i].Contains(mouse)) { hoveredOption = i; return; }
         }
-
-        popup.Show();
     }
+
+    // Handle option click via MouseUp
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        base.OnMouseUp(e);
+        if(wasDragged || chatPhase != 1 || optionRects == null) return;
+        for(int i=0; i<optionRects.Length; i++) {
+            if(optionRects[i].Contains(e.Location)) {
+                string choice = chatOptions[i];
+                ShowRecs(choice);
+                return;
+            }
+        }
+        // Click outside options = dismiss
+        if(e.Y < optionRects[0].Top - 20) HideChat();
+    }
+
+    // =========== CHAT LOGIC ===========
+
+    private void ShowDialogue()
+    {
+        chatPhase = 1;
+        dialogueMsg = GetDialogue();
+        chatOptions = GetOptions();
+        SwitchToChatMode();
+    }
+
+    private void ShowRecs(string choice)
+    {
+        chatPhase = 2;
+        recTitle = choice;
+        LoadRecsForChoice(choice);
+        SwitchToChatMode();
+    }
+
+    private void HideChat()
+    {
+        chatPhase = 0;
+        chatOptions = null;
+        optionRects = null;
+        hoveredOption = -1;
+        SwitchToPetMode();
+    }
+
+    private void SwitchToChatMode()
+    {
+        this.SuspendLayout();
+        // Keep same bottom position, expand upward
+        int newTop = this.Top - (FULL_H - PET_H);
+        this.MinimumSize = new Size(0,0);
+        this.Size = new Size(FULL_W, FULL_H);
+        this.Location = new Point(this.Left - (FULL_W - PET_W) / 2, newTop);
+        this.ResumeLayout();
+        this.Invalidate();
+    }
+
+    private void SwitchToPetMode()
+    {
+        this.SuspendLayout();
+        int oldBottom = this.Bottom;
+        this.Size = new Size(PET_W, PET_H);
+        this.Location = new Point(
+            this.Left + (FULL_W - PET_W) / 2,
+            this.Top + (FULL_H - PET_H)
+        );
+        this.ResumeLayout();
+        this.Invalidate();
+    }
+
+    private GraphicsPath RoundedRect(int x, int y, int w, int h, int r)
+    {
+        var path = new GraphicsPath();
+        path.AddArc(x, y, r*2, r*2, 180, 90);
+        path.AddArc(x+w-r*2, y, r*2, r*2, 270, 90);
+        path.AddArc(x+w-r*2, y+h-r*2, r*2, r*2, 0, 90);
+        path.AddArc(x, y+h-r*2, r*2, r*2, 90, 90);
+        path.CloseFigure();
+        return path;
+    }
+
+    // =========== DIALOGUE CONTENT ===========
 
     private string GetDialogue()
     {
         if(activity != null && activity.game != null)
-            return "检测到你在玩 " + activity.game.name + "，\n想听点什么样的音乐？";
+            return "在玩 " + activity.game.name + " 呀~\n想听点什么音乐？";
         if(activity != null && activity.music != null)
-            return "在听歌呢~ \n想找同类风格还是换换口味？";
+            return "在听歌呢~\n要推荐同类还是换换口味？";
         var h = DateTime.Now.Hour;
-        if(h < 6 || h >= 23) return "夜深了...\n来点安静的音乐助眠？";
-        if(h < 9) return "早上好~\n来点音乐开启新一天？";
+        if(h < 6 || h >= 23) return "夜深了...\n来点安静的音乐吧~";
+        if(h < 9) return "早安~\n来点音乐开启新一天？";
+        if(h < 14) return "下午好~\n想来点提神的吗？";
         return "想听点什么呢？";
     }
 
     private string[] GetOptions()
     {
         if(activity != null && activity.game != null)
-            return new[] { "🎮 游戏同款风格", "😌 安静放松一下", "🎲 随便来点" };
+            return new[] { "🎮 游戏同款风格", "😌 安静放松一下", "🎲 随机来点" };
         if(activity != null && activity.music != null)
-            return new[] { "🎵 相似风格推荐", "🔄 换换口味", "🎲 随机惊喜" };
+            return new[] { "🎵 相似风格", "🔄 换换口味", "🎲 随机推荐" };
         var h = DateTime.Now.Hour;
-        if(h < 6 || h >= 23) return new[] { "🌙 助眠轻音", "🎹 钢琴独奏", "🎲 随便听听" };
-        if(h < 9) return new[] { "🌅 元气早晨", "☕ 咖啡爵士", "🎲 随便来点" };
-        return new[] { "🎸 流行推荐", "🎻 古典器乐", "🎲 随机推荐" };
+        if(h < 6 || h >= 23) return new[] { "🌙 助眠轻音乐", "🎹 钢琴独奏", "🎲 随便听听" };
+        if(h < 9) return new[] { "🌅 元气流行", "☕ 咖啡爵士", "🎲 随机推荐" };
+        return new[] { "🎸 流行热歌", "🎻 古典器乐", "🎲 随机来点" };
     }
 
-    // Phase 2: show recommendations based on chosen option
-    private void ShowRecPopup(string choice)
-    {
-        popup = new Form();
-        popup.Size = new Size(240, 200);
-        popup.FormBorderStyle = FormBorderStyle.None;
-        popup.TopMost = true;
-        popup.ShowInTaskbar = false;
-        popup.StartPosition = FormStartPosition.Manual;
-        popup.Location = new Point(this.Left - 70, this.Top - 210);
-        popup.BackColor = Color.FromArgb(26, 26, 46);
-        popup.Paint += (s, e) => {
-            e.Graphics.DrawRectangle(new Pen(Color.FromArgb(255, 107, 157), 1), 0, 0, popup.Width-1, popup.Height-1);
-        };
-        popup.FormClosed += (s2, e2) => { popup = null; };
-
-        // Close button
-        var closeBtn = new Label();
-        closeBtn.Text = "✕"; closeBtn.ForeColor = Color.FromArgb(136, 136, 168);
-        closeBtn.Font = new Font("Arial", 10, FontStyle.Bold);
-        closeBtn.Location = new Point(popup.Width - 24, 4);
-        closeBtn.Size = new Size(20, 20); closeBtn.TextAlign = ContentAlignment.MiddleCenter;
-        closeBtn.Cursor = Cursors.Hand;
-        closeBtn.Click += (s2, e2) => { popup.Close(); popup = null; };
-        popup.Controls.Add(closeBtn);
-
-        // Title
-        var title = new Label();
-        title.Text = choice;
-        title.ForeColor = Color.FromArgb(255, 107, 157);
-        title.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
-        title.Location = new Point(10, 8);
-        title.Size = new Size(200, 20);
-        popup.Controls.Add(title);
-
-        // Load recommendations for this choice
-        LoadRecsForChoice(choice);
-
-        var recLabel = new Label();
-        recLabel.Text = recs != null && recs.Length > 0 ? string.Join("\n", recs) : "正在搜索...";
-        recLabel.ForeColor = Color.FromArgb(224, 224, 232);
-        recLabel.Font = new Font("Microsoft YaHei", 8);
-        recLabel.Location = new Point(10, 32);
-        recLabel.Size = new Size(218, 158);
-        recLabel.Click += (s2, e2) => { popup.Close(); popup = null; };
-        popup.Controls.Add(recLabel);
-
-        // Click to dismiss
-        title.Click += (s2, e2) => { popup.Close(); popup = null; };
-        popup.Click += (s2, e2) => { popup.Close(); popup = null; };
-
-        popup.Show();
-    }
+    // =========== RECOMMENDATIONS ===========
 
     private void LoadRecsForChoice(string choice)
     {
         string[] genres;
-        if(choice.Contains("游戏") || choice.Contains("风格")) {
-            genres = GetGenres();
-        } else if(choice.Contains("安静") || choice.Contains("放松") || choice.Contains("助眠") || choice.Contains("轻音")) {
+        if(choice.Contains("游戏") || choice.Contains("风格")) genres = GetGenres();
+        else if(choice.Contains("安静") || choice.Contains("放松") || choice.Contains("助眠") || choice.Contains("轻音"))
             genres = new[] { "Ambient", "Lo-fi", "Piano" };
-        } else if(choice.Contains("换换") || choice.Contains("随机") || choice.Contains("随便")) {
-            var all = new[] { "Jazz", "Rock", "Electronic", "Classical", "Pop", "R&B", "Indie", "Folk", "Hip-Hop", "Chill" };
+        else if(choice.Contains("换换") || choice.Contains("随机") || choice.Contains("随便")) {
+            var all = new[]{"Jazz","Rock","Electronic","Classical","Pop","R&B","Indie","Folk","Hip-Hop","Chill"};
             var rng = new Random();
-            genres = new[] { all[rng.Next(all.Length)], all[rng.Next(all.Length)], all[rng.Next(all.Length)] };
-        } else if(choice.Contains("咖啡") || choice.Contains("爵士")) {
-            genres = new[] { "Jazz", "Bossa Nova", "Acoustic" };
-        } else if(choice.Contains("钢琴") || choice.Contains("古典") || choice.Contains("器乐")) {
-            genres = new[] { "Classical", "Piano", "Instrumental" };
-        } else if(choice.Contains("元气") || choice.Contains("早晨") || choice.Contains("流行")) {
-            genres = new[] { "Pop", "Acoustic", "Indie" };
-        } else {
-            genres = GetGenres();
-        }
+            genres = new[]{all[rng.Next(all.Length)],all[rng.Next(all.Length)],all[rng.Next(all.Length)]};
+        } else if(choice.Contains("咖啡") || choice.Contains("爵士"))
+            genres = new[]{"Jazz","Bossa Nova","Acoustic"};
+        else if(choice.Contains("钢琴") || choice.Contains("古典") || choice.Contains("器乐"))
+            genres = new[]{"Classical","Piano","Instrumental"};
+        else if(choice.Contains("元气") || choice.Contains("流行"))
+            genres = new[]{"Pop","Acoustic","Indie"};
+        else genres = GetGenres();
 
         try {
-            var all = new System.Collections.Generic.List<string>();
+            var all = new List<string>();
             foreach(var g in genres) {
                 using(var wc = new WebClient()) {
                     wc.Encoding = Encoding.UTF8;
-                    var json = wc.DownloadString("http://127.0.0.1:8080/api/itunes/search?term=" + Uri.EscapeDataString(g) + "&entity=song&limit=3&country=cn");
-                    var tracks = ParseTracks(json);
-                    foreach(var t in tracks) { if(!all.Contains(t)) all.Add(t); }
+                    var json = wc.DownloadString("http://127.0.0.1:8080/api/itunes/search?term="
+                        + Uri.EscapeDataString(g) + "&entity=song&limit=3&country=cn");
+                    foreach(var t in ParseTracks(json))
+                        if(!all.Contains(t)) all.Add(t);
                 }
             }
             recs = all.GetRange(0, Math.Min(4, all.Count)).ToArray();
-        } catch { recs = new[] { "服务器离线" }; }
+        } catch { recs = new[]{"服务器离线"}; }
     }
+
+    private string[] GetGenres()
+    {
+        var g = new List<string>();
+        if(activity != null && activity.game != null && activity.game.style != null)
+            g.AddRange(activity.game.style.Split(' '));
+        var h = DateTime.Now.Hour;
+        if(h<6||h>=22){g.Add("Lo-fi");g.Add("Ambient");}
+        else if(h<10){g.Add("Acoustic");g.Add("Classical");}
+        else{g.Add("Electronic");g.Add("Pop");}
+        if(g.Count==0)g.Add("Lo-fi");
+        return g.ToArray();
+    }
+
+    // =========== API & PARSING ===========
 
     private void PollActivity()
     {
@@ -350,7 +407,6 @@ public class MusicPet : Form
             using(var wc = new WebClient()) {
                 wc.Encoding = Encoding.UTF8;
                 var json = wc.DownloadString("http://127.0.0.1:8080/api/activity");
-                // Simple JSON parsing (avoid dependency on Newtonsoft)
                 activity = ParseActivity(json);
                 this.BeginInvoke((Action)(() => {
                     string tip = "♪ Music Pet";
@@ -360,76 +416,63 @@ public class MusicPet : Form
                     this.Invalidate();
                 }));
             }
-        } catch { /* Server might be offline */ }
+        } catch {}
     }
 
-    private string[] GetGenres()
-    {
-        var g = new System.Collections.Generic.List<string>();
-        if(activity != null && activity.game != null && activity.game.style != null)
-            g.AddRange(activity.game.style.Split(' '));
-        var h = DateTime.Now.Hour;
-        if(h < 6 || h >= 22) { g.Add("Lo-fi"); g.Add("Ambient"); }
-        else if(h < 10) { g.Add("Acoustic"); g.Add("Classical"); }
-        else { g.Add("Electronic"); g.Add("Pop"); }
-        if(g.Count == 0) g.Add("Lo-fi");
-        return g.ToArray();
-    }
-
-    // Minimal JSON parsing
     private ActivityData ParseActivity(string json)
     {
-        var result = new ActivityData();
+        var r = new ActivityData();
         try {
-            // Very simple parsing - extract known fields
-            result.game = ExtractGame(json);
-            result.music = ExtractString(json, "\"music\":\"", "\"");
-            result.timeOfDay = ExtractString(json, "\"timeOfDay\":\"", "\"");
+            r.game = ExtractGame(json);
+            r.music = ExtractStr(json, "\"music\":\"");
+            r.timeOfDay = ExtractStr(json, "\"timeOfDay\":\"");
         } catch {}
-        return result;
+        return r;
     }
 
     private GameData ExtractGame(string json)
     {
-        var name = ExtractString(json, "\"name\":\"", "\"");
-        var genre = ExtractString(json, "\"genre\":\"", "\"");
-        var style = ExtractString(json, "\"style\":\"", "\"");
-        if(string.IsNullOrEmpty(name)) return null;
-        return new GameData { name = name, genre = genre, style = style };
+        var n = ExtractStr(json, "\"name\":\"");
+        if(string.IsNullOrEmpty(n)) return null;
+        return new GameData {
+            name = n,
+            genre = ExtractStr(json, "\"genre\":\""),
+            style = ExtractStr(json, "\"style\":\"")
+        };
     }
 
-    private string ExtractString(string json, string start, string end)
+    private string ExtractStr(string json, string key)
     {
-        int si = json.IndexOf(start);
+        int si = json.IndexOf(key);
         if(si < 0) return null;
-        si += start.Length;
-        int ei = json.IndexOf(end, si);
+        si += key.Length;
+        int ei = json.IndexOf("\"", si);
         if(ei < 0) return null;
         return json.Substring(si, ei - si);
     }
 
     private string[] ParseTracks(string json)
     {
-        var list = new System.Collections.Generic.List<string>();
+        var list = new List<string>();
         int pos = 0;
         while(true) {
             var name = ExtractBetween(json, "\"trackName\":\"", "\"", ref pos);
             var artist = ExtractBetween(json, "\"artistName\":\"", "\"", ref pos);
-            if(name == null || artist == null) break;
+            if(name == null) break;
             if(!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(artist))
                 list.Add(name + " - " + artist);
         }
         return list.ToArray();
     }
 
-    private string ExtractBetween(string json, string key, string end, ref int startPos)
+    private string ExtractBetween(string json, string key, string end, ref int pos)
     {
-        int si = json.IndexOf(key, startPos);
+        int si = json.IndexOf(key, pos);
         if(si < 0) return null;
         si += key.Length;
         int ei = json.IndexOf(end, si);
         if(ei < 0) return null;
-        startPos = ei + 1;
+        pos = ei + 1;
         return json.Substring(si, ei - si);
     }
 
@@ -441,7 +484,6 @@ public class MusicPet : Form
     }
 }
 
-// Simple data classes (no external dependencies)
 public class ActivityData
 {
     public GameData game;
