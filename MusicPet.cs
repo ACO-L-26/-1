@@ -65,6 +65,11 @@ public class MusicPet : Form
         var screen = Screen.PrimaryScreen.WorkingArea;
         this.Location = new Point(screen.Width - PET_W - 10, screen.Height - PET_H - 10);
 
+        // Right-click menu: quit
+        var ctxMenu = new ContextMenuStrip();
+        ctxMenu.Items.Add("退出桌宠", null, (s2, e2) => { Application.Exit(); });
+        this.ContextMenuStrip = ctxMenu;
+
         // Mouse
         this.MouseDown += (s, e) => { dragging=true; wasDragged=false; dragStart=e.Location; };
         this.MouseMove += (s, e) => {
