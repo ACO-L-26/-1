@@ -499,11 +499,7 @@ public class MusicPet : Form
             url = "https://music.163.com/#/search/m/?s=" + query;
 
         try {
-            var psi = new System.Diagnostics.ProcessStartInfo {
-                FileName = url,
-                UseShellExecute = true
-            };
-            System.Diagnostics.Process.Start(psi);
+            System.Diagnostics.Process.Start("explorer.exe", "\"" + url + "\"");
         } catch {}
     }
 
