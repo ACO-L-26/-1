@@ -168,69 +168,180 @@ public class MusicPet : Form
         }
     }
 
-    // Click handler - show popup. One at a time, click to dismiss.
+    // Two-phase interaction: first click = dialogue, then pick option = show recs
     private void ShowRecommendations()
     {
         // Close existing popup
         if(popup != null && !popup.IsDisposed) { popup.Close(); popup = null; return; }
 
         popup = new Form();
-        popup.Size = new Size(240, 180);
+        popup.Size = new Size(230, 150);
         popup.FormBorderStyle = FormBorderStyle.None;
         popup.TopMost = true;
         popup.ShowInTaskbar = false;
         popup.StartPosition = FormStartPosition.Manual;
-        popup.Location = new Point(this.Left - 75, this.Top - 190);
+        popup.Location = new Point(this.Left - 65, this.Top - 160);
         popup.BackColor = Color.FromArgb(26, 26, 46);
         popup.Paint += (s, e) => {
             e.Graphics.DrawRectangle(new Pen(Color.FromArgb(255, 107, 157), 1), 0, 0, popup.Width-1, popup.Height-1);
         };
+        popup.FormClosed += (s2, e2) => { popup = null; };
 
         // Close button
         var closeBtn = new Label();
-        closeBtn.Text = "✕";
-        closeBtn.ForeColor = Color.FromArgb(136, 136, 168);
+        closeBtn.Text = "✕"; closeBtn.ForeColor = Color.FromArgb(136, 136, 168);
         closeBtn.Font = new Font("Arial", 10, FontStyle.Bold);
         closeBtn.Location = new Point(popup.Width - 24, 4);
-        closeBtn.Size = new Size(20, 20);
-        closeBtn.TextAlign = ContentAlignment.MiddleCenter;
+        closeBtn.Size = new Size(20, 20); closeBtn.TextAlign = ContentAlignment.MiddleCenter;
+        closeBtn.Cursor = Cursors.Hand;
+        closeBtn.Click += (s2, e2) => { popup.Close(); popup = null; };
+        popup.Controls.Add(closeBtn);
+
+        // Dialogue message
+        var msg = new Label();
+        msg.Text = GetDialogue();
+        msg.ForeColor = Color.FromArgb(224, 224, 232);
+        msg.Font = new Font("Microsoft YaHei", 9, FontStyle.Regular);
+        msg.Location = new Point(12, 12);
+        msg.Size = new Size(200, 40);
+        popup.Controls.Add(msg);
+
+        // Option buttons
+        var options = GetOptions();
+        int y = 58;
+        foreach(var opt in options) {
+            var btn = new Label();
+            btn.Text = "  " + opt;
+            btn.ForeColor = Color.FromArgb(255, 107, 157);
+            btn.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
+            btn.Location = new Point(12, y);
+            btn.Size = new Size(200, 26);
+            btn.Cursor = Cursors.Hand;
+            string chosen = opt;
+            btn.Click += (s2, e2) => {
+                popup.Close(); popup = null;
+                ShowRecPopup(chosen);
+            };
+            btn.MouseEnter += (s2, e2) => { btn.ForeColor = Color.White; };
+            btn.MouseLeave += (s2, e2) => { btn.ForeColor = Color.FromArgb(255, 107, 157); };
+            popup.Controls.Add(btn);
+            y += 28;
+        }
+
+        popup.Show();
+    }
+
+    private string GetDialogue()
+    {
+        if(activity != null && activity.game != null)
+            return "检测到你在玩 " + activity.game.name + "，\n想听点什么样的音乐？";
+        if(activity != null && activity.music != null)
+            return "在听歌呢~ \n想找同类风格还是换换口味？";
+        var h = DateTime.Now.Hour;
+        if(h < 6 || h >= 23) return "夜深了...\n来点安静的音乐助眠？";
+        if(h < 9) return "早上好~\n来点音乐开启新一天？";
+        return "想听点什么呢？";
+    }
+
+    private string[] GetOptions()
+    {
+        if(activity != null && activity.game != null)
+            return new[] { "🎮 游戏同款风格", "😌 安静放松一下", "🎲 随便来点" };
+        if(activity != null && activity.music != null)
+            return new[] { "🎵 相似风格推荐", "🔄 换换口味", "🎲 随机惊喜" };
+        var h = DateTime.Now.Hour;
+        if(h < 6 || h >= 23) return new[] { "🌙 助眠轻音", "🎹 钢琴独奏", "🎲 随便听听" };
+        if(h < 9) return new[] { "🌅 元气早晨", "☕ 咖啡爵士", "🎲 随便来点" };
+        return new[] { "🎸 流行推荐", "🎻 古典器乐", "🎲 随机推荐" };
+    }
+
+    // Phase 2: show recommendations based on chosen option
+    private void ShowRecPopup(string choice)
+    {
+        popup = new Form();
+        popup.Size = new Size(240, 200);
+        popup.FormBorderStyle = FormBorderStyle.None;
+        popup.TopMost = true;
+        popup.ShowInTaskbar = false;
+        popup.StartPosition = FormStartPosition.Manual;
+        popup.Location = new Point(this.Left - 70, this.Top - 210);
+        popup.BackColor = Color.FromArgb(26, 26, 46);
+        popup.Paint += (s, e) => {
+            e.Graphics.DrawRectangle(new Pen(Color.FromArgb(255, 107, 157), 1), 0, 0, popup.Width-1, popup.Height-1);
+        };
+        popup.FormClosed += (s2, e2) => { popup = null; };
+
+        // Close button
+        var closeBtn = new Label();
+        closeBtn.Text = "✕"; closeBtn.ForeColor = Color.FromArgb(136, 136, 168);
+        closeBtn.Font = new Font("Arial", 10, FontStyle.Bold);
+        closeBtn.Location = new Point(popup.Width - 24, 4);
+        closeBtn.Size = new Size(20, 20); closeBtn.TextAlign = ContentAlignment.MiddleCenter;
         closeBtn.Cursor = Cursors.Hand;
         closeBtn.Click += (s2, e2) => { popup.Close(); popup = null; };
         popup.Controls.Add(closeBtn);
 
         // Title
-        var label = new Label();
-        label.Text = activity != null ? GetActivityText() : "♪ Music Pet";
-        label.ForeColor = Color.FromArgb(255, 107, 157);
-        label.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
-        label.Location = new Point(10, 8);
-        label.Size = new Size(200, 20);
-        popup.Controls.Add(label);
+        var title = new Label();
+        title.Text = choice;
+        title.ForeColor = Color.FromArgb(255, 107, 157);
+        title.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
+        title.Location = new Point(10, 8);
+        title.Size = new Size(200, 20);
+        popup.Controls.Add(title);
 
-        // Recommendations
+        // Load recommendations for this choice
+        LoadRecsForChoice(choice);
+
         var recLabel = new Label();
-        recLabel.Text = recs != null ? string.Join("\n", recs) : "加载中...";
+        recLabel.Text = recs != null && recs.Length > 0 ? string.Join("\n", recs) : "正在搜索...";
         recLabel.ForeColor = Color.FromArgb(224, 224, 232);
         recLabel.Font = new Font("Microsoft YaHei", 8);
-        recLabel.Location = new Point(10, 30);
-        recLabel.Size = new Size(220, 140);
+        recLabel.Location = new Point(10, 32);
+        recLabel.Size = new Size(218, 158);
+        recLabel.Click += (s2, e2) => { popup.Close(); popup = null; };
         popup.Controls.Add(recLabel);
 
-        // Click anywhere to close
-        recLabel.Click += (s2, e2) => { popup.Close(); popup = null; };
-        label.Click += (s2, e2) => { popup.Close(); popup = null; };
+        // Click to dismiss
+        title.Click += (s2, e2) => { popup.Close(); popup = null; };
+        popup.Click += (s2, e2) => { popup.Close(); popup = null; };
 
-        popup.FormClosed += (s2, e2) => { popup = null; };
         popup.Show();
     }
 
-    private string GetActivityText()
+    private void LoadRecsForChoice(string choice)
     {
-        var sb = new StringBuilder();
-        if(activity.game != null) sb.AppendLine("🎮 " + activity.game.name);
-        if(activity.music != null) sb.AppendLine("🎵 " + activity.music);
-        sb.Append("🕐 " + (activity.timeOfDay ?? ""));
-        return sb.ToString();
+        string[] genres;
+        if(choice.Contains("游戏") || choice.Contains("风格")) {
+            genres = GetGenres();
+        } else if(choice.Contains("安静") || choice.Contains("放松") || choice.Contains("助眠") || choice.Contains("轻音")) {
+            genres = new[] { "Ambient", "Lo-fi", "Piano" };
+        } else if(choice.Contains("换换") || choice.Contains("随机") || choice.Contains("随便")) {
+            var all = new[] { "Jazz", "Rock", "Electronic", "Classical", "Pop", "R&B", "Indie", "Folk", "Hip-Hop", "Chill" };
+            var rng = new Random();
+            genres = new[] { all[rng.Next(all.Length)], all[rng.Next(all.Length)], all[rng.Next(all.Length)] };
+        } else if(choice.Contains("咖啡") || choice.Contains("爵士")) {
+            genres = new[] { "Jazz", "Bossa Nova", "Acoustic" };
+        } else if(choice.Contains("钢琴") || choice.Contains("古典") || choice.Contains("器乐")) {
+            genres = new[] { "Classical", "Piano", "Instrumental" };
+        } else if(choice.Contains("元气") || choice.Contains("早晨") || choice.Contains("流行")) {
+            genres = new[] { "Pop", "Acoustic", "Indie" };
+        } else {
+            genres = GetGenres();
+        }
+
+        try {
+            var all = new System.Collections.Generic.List<string>();
+            foreach(var g in genres) {
+                using(var wc = new WebClient()) {
+                    wc.Encoding = Encoding.UTF8;
+                    var json = wc.DownloadString("http://127.0.0.1:8080/api/itunes/search?term=" + Uri.EscapeDataString(g) + "&entity=song&limit=3&country=cn");
+                    var tracks = ParseTracks(json);
+                    foreach(var t in tracks) { if(!all.Contains(t)) all.Add(t); }
+                }
+            }
+            recs = all.GetRange(0, Math.Min(4, all.Count)).ToArray();
+        } catch { recs = new[] { "服务器离线" }; }
     }
 
     private void PollActivity()
@@ -241,7 +352,6 @@ public class MusicPet : Form
                 var json = wc.DownloadString("http://127.0.0.1:8080/api/activity");
                 // Simple JSON parsing (avoid dependency on Newtonsoft)
                 activity = ParseActivity(json);
-                LoadRecs();
                 this.BeginInvoke((Action)(() => {
                     string tip = "♪ Music Pet";
                     if(activity.game != null) tip = "🎮 " + activity.game.name;
@@ -251,25 +361,6 @@ public class MusicPet : Form
                 }));
             }
         } catch { /* Server might be offline */ }
-    }
-
-    private void LoadRecs()
-    {
-        try {
-            var genres = GetGenres();
-            var all = new System.Collections.Generic.List<string>();
-            foreach(var g in genres) {
-                using(var wc = new WebClient()) {
-                    wc.Encoding = Encoding.UTF8;
-                    var json = wc.DownloadString("http://127.0.0.1:8080/api/itunes/search?term=" + Uri.EscapeDataString(g) + "&entity=song&limit=3&country=cn");
-                    var results = ParseTracks(json);
-                    foreach(var t in results) {
-                        if(!all.Contains(t)) all.Add(t);
-                    }
-                }
-            }
-            recs = all.GetRange(0, Math.Min(4, all.Count)).ToArray();
-        } catch { recs = new[] { "离线" }; }
     }
 
     private string[] GetGenres()
